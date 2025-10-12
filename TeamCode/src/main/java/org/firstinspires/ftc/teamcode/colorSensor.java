@@ -1,4 +1,7 @@
-
+/**
+ * Please note that Blue is always detected
+ * Blue is equal to Purple.
+ */
 package org.firstinspires.ftc.teamcode;
 
 
@@ -13,7 +16,19 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class colorSensor extends OpMode {
     public NormalizedColorSensor colorSensor;
 
-    boolean detectingPurple;
+    public boolean detectingPurple;
+    public boolean detectingBlue;
+
+    //lower- less chance it is detected
+    //higher- higher chance it is detected
+    //blue and purple should be a little bit more than the others
+    //tolerance_blue2 is the tolerance for * purple * # (purple is x5 the other colors)
+    public final double tolerance_red = 1.5;
+    public final double tolerance_blue = 3.5;
+    public final double tolerance_blue2 = 10;
+    public final double tolerance_green = 1.3;
+
+    public final double tolerance_purple = 2.3;
 
 
 
@@ -21,6 +36,7 @@ public class colorSensor extends OpMode {
     public void init() {
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
+        detectingBlue = false;
         detectingPurple = false;
     }
 
@@ -32,7 +48,7 @@ public class colorSensor extends OpMode {
         normRed = colors.red / colors.alpha;
         normGreen = colors.green / colors.alpha;
         normBlue = colors.blue / colors.alpha;
-        normPurple = (colors.blue + colors.green) / colors.alpha;
+        normPurple = (colors.red + colors.blue) / colors.alpha;
 
 
         telemetry.setMsTransmissionInterval(25);
@@ -46,25 +62,29 @@ public class colorSensor extends OpMode {
 
         telemetry.addLine("Detecting-----------------------------------------------------");
 
-        if (((normGreen + normBlue)/ 1.5) < normRed) {
+        if (((normGreen + normBlue)/ tolerance_red) < normRed) {
             telemetry.addLine("Red");
             detectingPurple = false;
+            detectingBlue = false;
         }
 
 
-        if (((normRed + normBlue)/ 1.3) < normGreen) {
+        if (((normRed + normBlue)/ tolerance_green) < normGreen) {
             telemetry.addLine("Green");
             detectingPurple = false;
+            detectingBlue = false;
         }
 
-        if ((((normRed + normGreen) / 1.5) < normBlue) && !detectingPurple) {
+        if (((((normRed + normGreen) / (normPurple * tolerance_blue2) / tolerance_blue) < normBlue)/* && !detectingPurple */))  {
             telemetry.addLine("Blue");
             detectingPurple = false;
+            detectingBlue = true;
         }
 
-        if (((((normRed + normBlue) / 1.2 + normGreen))/ 1.5) < normBlue) {
+        if (((((normRed + normBlue) / 1.2 + normGreen)) / tolerance_purple) < normBlue /*&& !detectingBlue*/) {
             telemetry.addLine("Purple");
             detectingPurple = true;
+            detectingBlue = false;
         }
 
         telemetry.update();

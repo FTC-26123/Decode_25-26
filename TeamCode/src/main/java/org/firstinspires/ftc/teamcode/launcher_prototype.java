@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class launcher_prototype extends OpMode {
     public DcMotor launchMotor;
     public DcMotor intakeMotor;
-    public CRServo windmill;
+    public DcMotor windmill;
 
     public double motor_power = 1;
 
@@ -29,7 +29,7 @@ public class launcher_prototype extends OpMode {
 
         launchMotor = hardwareMap.get(DcMotor.class, "rightBack"); // Motors are named after Roadrunner Config- Panel 0
         intakeMotor = hardwareMap.get(DcMotor.class, "rightFront"); // Panel 1
-        windmill = hardwareMap.get(CRServo.class, "windmill"); // Panel 0
+        windmill = hardwareMap.get(DcMotor.class, "windmill"); // Panel 0
 
         launchMotor.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
