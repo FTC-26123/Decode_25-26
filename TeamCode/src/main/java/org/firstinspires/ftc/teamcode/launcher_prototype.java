@@ -96,6 +96,7 @@ public class launcher_prototype extends OpMode {
             launchMotor.setPower(motor_power);
         }
 
+
         // intake
         if (gamepad1.b) {
             intakeMotor.setPower(motor_power);

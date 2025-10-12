@@ -51,6 +51,7 @@ public class colorSensor extends OpMode {
             detectingPurple = false;
         }
 
+
         if (((normRed + normBlue)/ 1.3) < normGreen) {
             telemetry.addLine("Green");
             detectingPurple = false;
