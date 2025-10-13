@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 public class colorSensor extends OpMode {
     public NormalizedColorSensor colorSensor;
 
+
     @Override
     public void init() {
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
