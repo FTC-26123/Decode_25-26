@@ -15,6 +15,7 @@ public class colorSensor extends OpMode {
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
 
+
     }
 
     public void loop() {
