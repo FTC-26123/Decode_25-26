@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 @TeleOp(name = "Color Sensor Test" , group = "Color")
 public class colorSensor extends OpMode {
@@ -14,7 +13,6 @@ public class colorSensor extends OpMode {
     public void init() {
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
-
 
     }
 
