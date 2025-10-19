@@ -2,18 +2,16 @@
  * Please note that Blue is always detected
  * Blue is equal to Purple.
  */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Testing;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 @TeleOp(name = "Color Sensor Test"/*, group = "goo" */)
-public class colorSensor extends OpMode {
+public class neel_color extends OpMode {
     public NormalizedColorSensor colorSensor;
 
     public boolean detectingPurple;
