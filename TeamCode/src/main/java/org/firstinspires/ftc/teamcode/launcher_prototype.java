@@ -1,39 +1,40 @@
-
 package org.firstinspires.ftc.teamcode;
-
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-@TeleOp(name = "Launcher Prototype"/*, group = "goo" */)
+@TeleOp(name = "Launcher Prototype")
 public class launcher_prototype extends OpMode {
-    public DcMotor launchMotor;
-    public DcMotor intakeMotor;
+
+    public DcMotor launcher;
+    public DcMotor intake;
     public DcMotor windmill;
+    public Servo sorter;
 
-    public double motor_power = 1;
-
-    String motor_direction = "FORWARD";
-
-
+    public NormalizedColorSensor colorSensor;
 
     @Override
     public void init() {
 
-        launchMotor = hardwareMap.get(DcMotor.class, "rightBack"); // Motors are named after Roadrunner Config- Panel 0
-        intakeMotor = hardwareMap.get(DcMotor.class, "rightFront"); // Panel 1
-        windmill = hardwareMap.get(DcMotor.class, "windmill"); // Panel 0
+        launcher = hardwareMap.get(DcMotor.class, "launcher"); // Motors are named after Roadrunner Config- Panel 0
+        intake = hardwareMap.get(DcMotor.class, "intake"); // Panel 1
+        windmill = hardwareMap.get(DcMotor.class, "windmill"); // Panel// 0
+        sorter = hardwareMap.get(Servo.class, "gate");
 
-        launchMotor.setDirection(DcMotor.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        launcher.setDirection(DcMotor.Direction.REVERSE);
+        intake.setDirection(DcMotor.Direction.REVERSE);
         windmill.setDirection(DcMotor.Direction.FORWARD);
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
+        colorSensor.setGain(7);
 
     }
 
@@ -45,69 +46,97 @@ public class launcher_prototype extends OpMode {
         telemetry.addLine("Rotate Launch Motor = gamepad1.a");
         telemetry.addLine("Rotate Intake Motor = gamepad1.b");
         telemetry.addLine("Rotate Windmill = gamepad1.x");
-        telemetry.addLine("Set Direction Forward = gamepad1.left_bumper");
-        telemetry.addLine("Set Direction Reverse = gamepad1.right_bumper");
-        telemetry.addLine("Add Power + 0.1 = gamepad1.dpad_left");
-        telemetry.addLine("Add Power - 0.1 = gamepad1.dpad_right");
+        telemetry.addLine("Neutral = gamepad1.y");
+        telemetry.addLine("Pos1 = gamepad1.right_stick_right");
+        telemetry.addLine("Pos2 = gamepad1.right_stick_left");
         telemetry.addLine("Turn All Motors Off = gamepad1.ps");
+        telemetry.addLine("Rotate Intake Power 0.4- gamepad1.dpad_left");
+        telemetry.addLine("Launch power 0.5- gamepad1.dpad_up, " +
+                "0.7- gamepad1.dpad_right, ");
+        telemetry.addLine("Launch power 0.9- gamepad1.dpad_down");
 
-        telemetry.addData("Motor Power", motor_power);
-        telemetry.addData("Direction", motor_direction);
         telemetry.addData("Transmit Interval (ms)", telemetry.getMsTransmissionInterval());
 
-        telemetry.addData("Launch", launchMotor.getPower());
-        telemetry.addData("Intake", intakeMotor.getPower());
-        telemetry.addData("Windmill", windmill.getPower());
+        telemetry.addData("Launch Power", launcher.getPower());
+        telemetry.addData("Intake Power", intake.getPower());
+        telemetry.addData("Windmill Power", windmill.getPower());
+        telemetry.addData("Sorter Position", sorter.getPosition());
 
-        // forward - lb
-        if (gamepad1.left_bumper) {
-
-            motor_direction = "FORWARD";
-            launchMotor.setDirection(DcMotor.Direction.FORWARD);
-            intakeMotor.setDirection(DcMotor.Direction.FORWARD);
-            windmill.setDirection(DcMotor.Direction.FORWARD);
-        }
-
-        // backward- rb
-        if (gamepad1.right_bumper) {
-
-            motor_direction = "REVERSE";
-            launchMotor.setDirection(DcMotor.Direction.REVERSE);
-            intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-            windmill.setDirection(DcMotor.Direction.REVERSE);
-        }
-
-        // add 0.1 to m_p
-        if (gamepad1.dpad_left & (motor_power <= 1) & (motor_power >= 0.1)) {
-            motor_power = motor_power + 0.1;
-        }
-
-        // subtract 0.1 to m_p
-        if (gamepad1.dpad_right & (motor_power <= 1) & (motor_power >= 0.1)) {
-            motor_power = motor_power - 0.1;
-        }
 
         //off- ps
-        if (gamepad1.psWasPressed())
-            motor_power = 0;
+        if (gamepad1.ps) {
+            launcher.setPower(0);
+            intake.setPower(0);
+            windmill.setPower(0);
+        }
 
         // launch
         if (gamepad1.a) {
-            launchMotor.setPower(motor_power);
+            launcher.setPower(1);
         }
+
+        if (gamepad1.dpad_up) {
+            launcher.setPower(0.5);
+        }
+
+        else if (gamepad1.dpad_right) {
+            launcher.setPower(0.7);
+        }
+
+        else if (gamepad1.dpad_down) {
+            launcher.setPower(0.9);
+        }
+
 
 
         // intake
         if (gamepad1.b) {
-            intakeMotor.setPower(motor_power);
+            intake.setPower(1);
+        }
+
+        if (gamepad1.dpad_left) {
+            intake.setPower(0.4);
         }
 
         // windmill
         if (gamepad1.x) {
-            windmill.setPower(motor_power);
+            windmill.setPower(1);
         }
+
+        if (gamepad1.y) {
+            sorter.setPosition(0.5);
+        }
+
+        if (gamepad1.right_stick_x > 0) {
+            sorter.setPosition(1);
+        }
+
+        if (gamepad1.right_stick_x < 0) {
+            sorter.setPosition(0);
+        }
+
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        int col = colors.toColor();
+        double hue = JavaUtil.colorToHue(col);
+
+        telemetry.addData("Detected Hue", hue);
+        telemetry.addData("Detected Color", col);
+
+        if (hue > 15 && hue < 60) {
+            telemetry.addLine("Detected Color: Red");
+        } else if (hue > 90 && hue < 180) {
+            telemetry.addLine("Detected Color: Green");
+        } else if (hue > 200 && hue < 210) {
+            telemetry.addLine("Detected Color: Blue");
+        } else if (hue > 225 && hue < 350) {
+            telemetry.addLine("Detected Color: Purple");
+        }
+
 
         telemetry.update();
 
     }
 }
+
+
