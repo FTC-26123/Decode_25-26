@@ -25,7 +25,7 @@ public class TeleOp_BETA extends OpMode {
     public DcMotor backLeftMotor;
     public DcMotor backRightMotor;
     public DcMotor shooter;
-    public CRServo windmill;
+    public DcMotor windmill;
     public DcMotor intake;
     public Servo gate;
     public float frontLeftMotorSpeed = 0;
@@ -78,7 +78,7 @@ public class TeleOp_BETA extends OpMode {
         backLeftMotor=hardwareMap.get(DcMotor.class,"backLeftMotor");
         backRightMotor=hardwareMap.get(DcMotor.class,"backRightMotor");
         shooter=hardwareMap.get(DcMotor.class,"shooter_motor");
-        windmill=hardwareMap.get(CRServo.class,"windmill_CRServo");
+        windmill=hardwareMap.get(DcMotor.class,"windmill_CRServo");
         intake=hardwareMap.get(DcMotor.class,"intake_motor");
         gate=hardwareMap.get(Servo.class,"gate_opener");
         // Limelight
