@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -25,7 +26,7 @@ public class TeleOp_BETA extends OpMode {
     public DcMotor backLeftMotor;
     public DcMotor backRightMotor;
     public DcMotor shooter;
-    public CRServo windmill;
+    public DcMotor windmill;
     public DcMotor intake;
     public Servo gate;
     public float frontLeftMotorSpeed = 0;
@@ -33,7 +34,7 @@ public class TeleOp_BETA extends OpMode {
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
     String Pattern;
-    private Limelight3A limelight;
+//    private Limelight3A limelight;
 
     // Limelight Variable
     // Limelight Constants
@@ -43,13 +44,15 @@ public class TeleOp_BETA extends OpMode {
     private final double APRILTAG_HEIGHT = 25;
 
     //lights constant
-    private Servo blinkin;
+//    private Servo blinkin;
     private ElapsedTime runtime = new ElapsedTime();
 
     public NormalizedColorSensor colorSensor;
 
     public boolean detectingPurple;
     public boolean detectingBlue;
+
+
 
     //lower- less chance it is detected
     //higher- higher chance it is detected
@@ -77,21 +80,23 @@ public class TeleOp_BETA extends OpMode {
         frontRightMotor=hardwareMap.get(DcMotor.class,"frontRightMotor");
         backLeftMotor=hardwareMap.get(DcMotor.class,"backLeftMotor");
         backRightMotor=hardwareMap.get(DcMotor.class,"backRightMotor");
-        shooter=hardwareMap.get(DcMotor.class,"shooter_motor");
-        windmill=hardwareMap.get(CRServo.class,"windmill_CRServo");
-        intake=hardwareMap.get(DcMotor.class,"intake_motor");
-        gate=hardwareMap.get(Servo.class,"gate_opener");
+        shooter=hardwareMap.get(DcMotor.class,"launcher");
+        windmill=hardwareMap.get(DcMotor.class,"windmill");
+        intake=hardwareMap.get(DcMotor.class,"intake");
+        gate=hardwareMap.get(Servo.class,"gate");
         // Limelight
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
-        limelight.start();
+//        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+//        limelight.pipelineSwitch(0);
+//        limelight.start();
         // Lights
-        blinkin = hardwareMap.get(Servo.class, "blinkin");
+//        blinkin = hardwareMap.get(Servo.class, "blinkin");
         // Color Sensor
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
         detectingBlue = false;
         detectingPurple = false;
+
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     @Override
@@ -112,7 +117,7 @@ public class TeleOp_BETA extends OpMode {
 
         double time = runtime.seconds();
         // Check for the distance
-        LLResult result = limelight.getLatestResult();
+//        LLResult result = limelight.getLatestResult();
 
         //limelight
         double tx = 0;
@@ -123,101 +128,101 @@ public class TeleOp_BETA extends OpMode {
         double shooterVelocity = -1;
 
 
-        if(result != null && result.isValid()){
-            tx = result.getTx();
-            ty = result.getTy();
-            botpose = result.getBotpose();
-
-            // --- Distance Calculation ---
-            double angleToGoalDegrees = LIMELIGHT_MOUNT_ANGLE_DEGREES + ty;
-            double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
-            distanceInches = (APRILTAG_HEIGHT - LIMELIGHT_LENS_HEIGHT_INCHES) / Math.tan(angleToGoalRadians);
-            // --- Velocity Calculation ---
-
-            // lights, camera, action!!
-            if(distanceInches < 80){
-                // lights change color to green indicating that correct distance is shown
-                blinkin.setPosition(0.25);
-                // Pause for 2.5 second to alert the drivers
-                try {
-                    sleep(2500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            else if (time==90) {
-                blinkin.setPosition(-0.97);
-                // Show rainbow pattern for 1.5 seconds to alert driver that 1.5 minutes are left
-                try {
-                    sleep(1500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            else if (time==10) {
-                blinkin.setPosition(-0.97);
-                // Show rainbow pattern for 0.8 seconds to alert driver that 10 seconds are left
-                try {
-                    sleep(800);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            else{
-                blinkin.setPosition(0.61);
-                telemetry.addLine("No Target Found");
-            }
-            if(gamepad2.b){
-                if (Pattern.equals("ID:21; GPP")) {
-                    // Initially check for green
-                    if (((normRed + normBlue)/ tolerance_green) < normGreen) {
-                        telemetry.addLine("Green");
-                        detectingPurple = false;
-                        detectingBlue = false;
-                        // shoot the ball if green
-                        gate.setPosition(90);
-                        // HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE
-                    }
-                    else{
-                        windmill.setPower(0.3);
-                        try {
-                            sleep(100);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        windmill.setPower(0);
-                    }
-                }
-                if (Pattern.equals("ID:22; PGP")) {
-                    // launches accordingly
-                }
-                if (Pattern.equals("ID:23; PPG")) {
-                    // launches accordingly
-                }
-            }
-        }
-        if (result == null || !result.isValid()) {
-            // Show red even when april tag is not visible to bot
-            blinkin.setPosition(0.61);
-            telemetry.addLine("No Target Found");
-        }
-
-
-            // Driver sets the pattern w/ Dpad
-        if(gamepad1.dpad_left){
-            Pattern = "ID:21; GPP";
-            telemetry.addLine(Pattern);
-        }
-        if(gamepad1.dpad_up){
-            Pattern = "ID:22; PGP";
-            telemetry.addLine(Pattern);
-
-        }
-        if(gamepad1.dpad_right){
-            Pattern = "ID:23; PPG";
-            telemetry.addLine(Pattern);
-
-        }
+//        if(result != null && result.isValid()){
+//            tx = result.getTx();
+//            ty = result.getTy();
+//            botpose = result.getBotpose();
+//
+//            // --- Distance Calculation ---
+//            double angleToGoalDegrees = LIMELIGHT_MOUNT_ANGLE_DEGREES + ty;
+//            double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
+//            distanceInches = (APRILTAG_HEIGHT - LIMELIGHT_LENS_HEIGHT_INCHES) / Math.tan(angleToGoalRadians);
+//            // --- Velocity Calculation ---
+//
+//            // lights, camera, action!!
+//            if(distanceInches < 80){
+//                // lights change color to green indicating that correct distance is shown
+//                blinkin.setPosition(0.25);
+//                // Pause for 2.5 second to alert the drivers
+//                try {
+//                    sleep(2500);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//            else if (time==90) {
+//                blinkin.setPosition(-0.97);
+//                // Show rainbow pattern for 1.5 seconds to alert driver that 1.5 minutes are left
+//                try {
+//                    sleep(1500);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//            else if (time==10) {
+//                blinkin.setPosition(-0.97);
+//                // Show rainbow pattern for 0.8 seconds to alert driver that 10 seconds are left
+//                try {
+//                    sleep(800);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//            else{
+//                blinkin.setPosition(0.61);
+//                telemetry.addLine("No Target Found");
+//            }
+//            if(gamepad2.b){
+//                if (Pattern.equals("ID:21; GPP")) {
+//                    // Initially check for green
+//                    if (((normRed + normBlue)/ tolerance_green) < normGreen) {
+//                        telemetry.addLine("Green");
+//                        detectingPurple = false;
+//                        detectingBlue = false;
+//                        // shoot the ball if green
+//                        gate.setPosition(90);
+//                        // HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE
+//                    }
+//                    else{
+//                        windmill.setPower(0.3);
+//                        try {
+//                            sleep(100);
+//                        } catch (InterruptedException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                        windmill.setPower(0);
+//                    }
+//                }
+//                if (Pattern.equals("ID:22; PGP")) {
+//                    // launches accordingly
+//                }
+//                if (Pattern.equals("ID:23; PPG")) {
+//                    // launches accordingly
+//                }
+//            }
+//        }
+////        if (result == null || !result.isValid()) {
+////            // Show red even when april tag is not visible to bot
+////            blinkin.setPosition(0.61);
+////            telemetry.addLine("No Target Found");
+////        }
+//
+//
+//            // Driver sets the pattern w/ Dpad
+//        if(gamepad1.dpad_left){
+//            Pattern = "ID:21; GPP";
+//            telemetry.addLine(Pattern);
+//        }
+//        if(gamepad1.dpad_up){
+//            Pattern = "ID:22; PGP";
+//            telemetry.addLine(Pattern);
+//
+//        }
+//        if(gamepad1.dpad_right){
+//            Pattern = "ID:23; PPG";
+//            telemetry.addLine(Pattern);
+//
+//        }
         // Movement w/ Joysticks
         frontLeftMotorSpeed = 0;
         frontRightMotorSpeed = 0;
@@ -275,8 +280,10 @@ public class TeleOp_BETA extends OpMode {
             intake.setPower(0);
         }
         if(gamepad2.a){
-            shooter.setPower(0);
+            shooter.setPower(1);
         }
+
+
 
         telemetry.setMsTransmissionInterval(30);
 
