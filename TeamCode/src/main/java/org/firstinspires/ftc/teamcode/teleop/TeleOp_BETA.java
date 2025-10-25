@@ -269,6 +269,7 @@ public class TeleOp_BETA extends OpMode {
             gate.setPosition(0);
         }
 
+
         // Intake w/ Bumpers
         if (gamepad2.left_bumper){
             intake.setPower(1);

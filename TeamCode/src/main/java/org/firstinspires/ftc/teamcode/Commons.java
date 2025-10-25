@@ -718,6 +718,7 @@ public class Commons {
         stopMotors();
     }
 
+
     public static double getXPosition() {
         return odo.getEncoderX() / (19.89436789f * 25.4);
     }
