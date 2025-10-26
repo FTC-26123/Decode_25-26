@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @TeleOp(name = "TeleOp_BETA")
@@ -48,19 +49,6 @@ public class TeleOp_BETA extends OpMode {
 
     public NormalizedColorSensor colorSensor;
 
-    public boolean detectingPurple;
-    public boolean detectingBlue;
-
-    //lower- less chance it is detected
-    //higher- higher chance it is detected
-    //blue and purple should be a little bit more than the others
-    //tolerance_blue2 is the tolerance for * purple * # (purple is x5 the other colors)
-    public final double tolerance_red = 1.5;
-    public final double tolerance_blue = 3.5;
-    public final double tolerance_blue2 = 10;
-    public final double tolerance_green = 1.3;
-
-    public final double tolerance_purple = 2.3;
 
     public void update(){
 //     Robot Motor Power Limits
@@ -81,16 +69,18 @@ public class TeleOp_BETA extends OpMode {
         windmill=hardwareMap.get(DcMotor.class,"windmill");
         intake=hardwareMap.get(DcMotor.class,"intake");
         gate=hardwareMap.get(Servo.class,"gate");
+
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
         // Limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
-        // Lights
-        // Color Sensor
-//        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
-//        colorSensor.setGain(7);
-//        detectingBlue = false;
-//        detectingPurple = false;
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
+        colorSensor.setGain(7);
+
+
     }
 
     @Override
@@ -101,15 +91,20 @@ public class TeleOp_BETA extends OpMode {
     @Override
     public void loop() {
 
-        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         // Color Sensing Code
-//        NormalizedRGBA colors = colorSensor.getNormalizedColors();
-//
-//        float normRed, normGreen, normBlue, normPurple;
-//        normRed = colors.red / colors.alpha;
-//        normGreen = colors.green / colors.alpha;
-//        normBlue = colors.blue / colors.alpha;
-//        normPurple = (colors.red + colors.blue) / colors.alpha;
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        int col = colors.toColor();
+        double hue = JavaUtil.colorToHue(col);
+
+        telemetry.addData("Detected Hue", hue);
+        telemetry.addData("Detected Color", col);
+
+        if (hue > 90 && hue < 180) {
+            telemetry.addLine("Detected Color: Green");
+        } else if (hue > 200 && hue < 210) {
+            telemetry.addLine("Detected Color: Purple");
+        }
 
         double time = runtime.seconds();
         // Check for the distance
@@ -134,6 +129,7 @@ public class TeleOp_BETA extends OpMode {
             distanceInches = (APRILTAG_HEIGHT - LIMELIGHT_LENS_HEIGHT_INCHES) / Math.tan(angleToGoalRadians);
             // --- Velocity Calculation ---
 
+            /** Do NOT use this code- will create robot stuck on stop() error*/
             // lights, camera, action!!
 //            if(distanceInches < 80){
 //                // lights change color to green indicating that correct distance is shown
