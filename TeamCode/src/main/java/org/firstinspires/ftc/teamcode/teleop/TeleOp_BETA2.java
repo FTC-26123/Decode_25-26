@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,8 +20,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name = "TeleOp_BETA")
-public class TeleOp_BETA extends OpMode {
+@TeleOp(name = "TeleOp_BETA without limelight id")
+public class TeleOp_BETA2 extends OpMode {
     //Initializing and declaring all variables/motors
     public final float MOTOR_MULTIPLIER_PERCENTAGE_CAP = 0.55F;
     public DcMotor frontLeftMotor;
@@ -31,13 +32,18 @@ public class TeleOp_BETA extends OpMode {
     public DcMotor windmill;
     public DcMotor intake;
     public CRServo gate;
+    public DigitalChannel touch;
+    public Servo light1;
+
     public float frontLeftMotorSpeed = 0;
     public float frontRightMotorSpeed = 0;
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
 
-    public Servo light1;
-    String Pattern;
+
+    public short launchPowerMinus = 1500;
+    public double launchPower;
+
     private Limelight3A limelight;
 
     // Limelight Variable
@@ -84,7 +90,10 @@ public class TeleOp_BETA extends OpMode {
 
         light1 = hardwareMap.get(Servo.class, "light1");
 
+        touch = hardwareMap.get(DigitalChannel.class, "touch");
+
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -93,6 +102,18 @@ public class TeleOp_BETA extends OpMode {
 
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
+
+    }
+
+    public boolean gateIsTouching(boolean addGateTelemetry) {
+        if (addGateTelemetry) {
+            telemetry.addLine("Gate Is Touching");
+        } else {
+            telemetry.update();
+        }
+
+        return (!touch.getState());
+
     }
 
     @Override
@@ -118,8 +139,8 @@ public class TeleOp_BETA extends OpMode {
         } else if (hue > 215 && hue < 255) {
             telemetry.addLine("Detected Color: Purple");
             light1.setPosition(0.67);
-        } else if (!(hue > 90 && hue < 180) && !(hue > 215 && hue < 255)) {
-            light1.setPosition(0.225);
+        } else {
+            light1.setPosition(0);
         }
 
         double time = runtime.seconds();
@@ -164,98 +185,90 @@ public class TeleOp_BETA extends OpMode {
 
         }
 
-            if (result == null || !result.isValid()) {
-                // Show red even when april tag is not visible to bot
-                telemetry.addLine("No Target Found");
-            }
+        if (result == null || !result.isValid()) {
+            // Show red even when april tag is not visible to bot
+            telemetry.addLine("No Target Found");
+        }
 
-            actualvelocity = finalvelocity;
+        actualvelocity = finalvelocity;
 
 
-            // Movement w/ Joysticks
-            frontLeftMotorSpeed = 0;
-            frontRightMotorSpeed = 0;
-            backLeftMotorSpeed = 0;
-            backRightMotorSpeed = 0;
+        // Movement w/ Joysticks
+        frontLeftMotorSpeed = 0;
+        frontRightMotorSpeed = 0;
+        backLeftMotorSpeed = 0;
+        backRightMotorSpeed = 0;
 
-            float left_stick_x = gamepad1.left_stick_x;
-            float left_stick_y = gamepad1.left_stick_y;
-            float right_stick_x = gamepad1.right_stick_x;
+        float left_stick_x = gamepad1.left_stick_x;
+        float left_stick_y = gamepad1.left_stick_y;
+        float right_stick_x = gamepad1.right_stick_x;
 
 //        Forward/Backward Movement
-            if (left_stick_y != 0) {
-                frontLeftMotorSpeed = -left_stick_y;
-                frontRightMotorSpeed = -left_stick_y;
-                backLeftMotorSpeed = -left_stick_y;
-                backRightMotorSpeed = -left_stick_y;
-            }
+        if (left_stick_y != 0) {
+            frontLeftMotorSpeed = -left_stick_y;
+            frontRightMotorSpeed = -left_stick_y;
+            backLeftMotorSpeed = -left_stick_y;
+            backRightMotorSpeed = -left_stick_y;
+        }
 
 //        Lateral Movement
-            if (left_stick_x != 0) {
-                frontLeftMotorSpeed += left_stick_x;
-                frontRightMotorSpeed -= left_stick_x;
-                backLeftMotorSpeed -= left_stick_x;
-                backRightMotorSpeed += left_stick_x;
-            }
+        if (left_stick_x != 0) {
+            frontLeftMotorSpeed += left_stick_x;
+            frontRightMotorSpeed -= left_stick_x;
+            backLeftMotorSpeed -= left_stick_x;
+            backRightMotorSpeed += left_stick_x;
+        }
 
 //        Rotation
-            if (right_stick_x != 0) {
-                frontLeftMotorSpeed += right_stick_x;
-                backLeftMotorSpeed += right_stick_x;
-                frontRightMotorSpeed -= right_stick_x;
-                backRightMotorSpeed -= right_stick_x;
-            }
-
-            double launchPower = (gamepad2.right_trigger * 6000);
-            // Emergency Stop w/ PS
-            if (gamepad2.ps) {
-                shooter.setPower(0);
-
-            }
-
-            if (gamepad2.right_bumper) {
-                intake.setPower(-0.5);
-                windmill.setPower(1);
-            }
-            if (gamepad2.left_bumper) {
-                intake.setPower(0);
-                windmill.setPower(0);
-            }
-            if (gamepad2.back) {
-                intake.setPower(0.5);
-                windmill.setPower(-1);
-            }
-            if (launchPower > 0) {
-                shooter.setVelocity(actualvelocity);
-            }
-            if (gamepad2.y) {
-                gate.setPower(0.2);
-            }
-            if (gamepad2.x) {
-                gate.setPower(0.2);
-                shooter.setVelocity(actualvelocity);
-
-            }
-
-            if (gamepad2.b) {
-                gate.setPower(-0.2);
-            }
-
-            if (!gamepad2.b && !gamepad2.y && !gamepad2.x) {
-                gate.setPower(0);
-            }
-
-            if (gamepad2.start) {
-                gate.setPower(0);
-            }
-
-            telemetry.setMsTransmissionInterval(30);
-
-            telemetry.update();
-            update();
-
+        if (right_stick_x != 0) {
+            frontLeftMotorSpeed += right_stick_x;
+            backLeftMotorSpeed += right_stick_x;
+            frontRightMotorSpeed -= right_stick_x;
+            backRightMotorSpeed -= right_stick_x;
         }
-    }
 
+        launchPower = (gamepad2.right_trigger * 6000);
+
+        if (launchPower > 0.4) {
+            shooter.setVelocity(launchPower - launchPowerMinus);
+        }
+
+        if (gamepad2.dpad_up) {
+            launchPowerMinus = 0;
+        } else if (gamepad2.dpad_down) {
+            launchPowerMinus = 1500;
+        }
+
+        if (gamepad2.right_bumper) {
+            intake.setPower(-0.5);
+            windmill.setPower(1);
+        } else if (gamepad2.left_bumper) {
+            intake.setPower(0);
+            windmill.setPower(0);
+        } else if (gamepad2.back) {
+            intake.setPower(0.5);
+            windmill.setPower(-1);
+        }
+
+        if (gamepad2.y) {
+            gate.setPower(0.2);
+        } else if (gamepad2.x) {
+            gate.setPower(0.2);
+            shooter.setVelocity(6000 - launchPowerMinus);
+        } else if (gamepad2.b) {
+            gate.setPower(-0.2);
+        } else if (gateIsTouching(true)) {
+            gate.setPower(0);
+        } else {
+            gate.setPower(0);
+        }
+
+        telemetry.setMsTransmissionInterval(30);
+
+        telemetry.update();
+        update();
+
+    }
+}
 
 
