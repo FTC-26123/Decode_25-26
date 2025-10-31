@@ -7,7 +7,6 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -20,8 +19,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name = "TeleOp_BETA without limelight id")
-public class TeleOp_BETA2 extends OpMode {
+@TeleOp(name = "TeleOp_ALPHA_no_Limelight")
+public class TeleOp_ALPHA extends OpMode {
     //Initializing and declaring all variables/motors
     public final float MOTOR_MULTIPLIER_PERCENTAGE_CAP = 0.55F;
     public DcMotor frontLeftMotor;
@@ -60,6 +59,23 @@ public class TeleOp_BETA2 extends OpMode {
     double finalvelocity = 0;
 
     double actualvelocity = 0;
+
+    public double currentShooterVelocity = 0;
+
+
+    public boolean gateIsPowered;
+    ElapsedTime gateForwardShooting = new ElapsedTime();
+
+    ElapsedTime gateBackwardShooting = new ElapsedTime();
+
+    ElapsedTime waitTimeShooting = new ElapsedTime();
+
+    ElapsedTime gateForwardDumping = new ElapsedTime();
+
+    ElapsedTime gateBackwardDumping = new ElapsedTime();
+
+    ElapsedTime waitTimeDumping = new ElapsedTime();
+
 
 
     //lights constant
@@ -125,6 +141,8 @@ public class TeleOp_BETA2 extends OpMode {
 
     @Override
     public void loop() {
+
+        telemetry.addData("Shooter Velocity", shooter.getVelocity());
 
         // Color Sensing Code
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
@@ -229,10 +247,10 @@ public class TeleOp_BETA2 extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
-        launchPower = (gamepad2.right_trigger * 6000);
+        launchPower = (gamepad2.right_trigger * 2075);
 
-        if (launchPower <= 3000) {
-            launchPower = 3000;
+        if (launchPower <= 2075) {
+            launchPower = 2075;
         }
         if (gamepad2.right_trigger > 0.35) {
             launchStarted = true;
@@ -258,15 +276,46 @@ public class TeleOp_BETA2 extends OpMode {
             windmill.setPower(0);
         }
 
-        if (gamepad2.b) {
-            gate.setPosition(0.05);
-        } else if (gamepad2.x) {
+        /*if (gamepad2.b && !gateIsPowered && currentShooterVelocity>=1500) {
             gate.setPosition(0.8);
-        } else if (gamepad2.y) {
+            gateForwardShooting.reset();
+            gateIsPowered = true;
+            light1.setPosition(0.47);
+        } else if (gateForwardShooting.milliseconds() >= 700 && gateForwardShooting.milliseconds() <= 750) {
+            waitTimeShooting.reset();
+        } else if (waitTimeShooting.milliseconds() >= 1250 && waitTimeShooting.milliseconds() <= 1300) {
             gate.setPosition(0.5);
+            gateBackwardShooting.reset();
+        } else if (gateBackwardShooting.milliseconds() >= 700 && gateForwardShooting.milliseconds() <= 750) {
+            gateIsPowered = false;
+            light1.setPosition(0.35);
+        }
+
+        if (gamepad2.x && !gateIsPowered) {
+            gate.setPosition(0.05);
+            gateForwardDumping.reset();
+            gateIsPowered = true;
+            light1.setPosition(0.29);
+        } else if (gateForwardDumping.milliseconds() >= 700 && gateForwardDumping.milliseconds() <= 750) {
+            waitTimeDumping.reset();
+        } else if (waitTimeDumping.milliseconds() >= 1250 && waitTimeDumping.milliseconds() <= 1300) {
+            gate.setPosition(0.5);
+            gateBackwardDumping.reset();
+        } else if (gateBackwardDumping.milliseconds() >= 700 && gateBackwardDumping.milliseconds() <=750) {
+            gateIsPowered = false;
+            light1.setPosition(0.35);
+        }*/
+
+        if (gamepad2.x) {
+            gate.setPosition(0.05);
+        } else if (gamepad2.b) {
+            gate.setPosition(0.8);
+        } else {
+            gate.setPosition(0.35);
         }
 
         telemetry.setMsTransmissionInterval(30);
+
 
         telemetry.update();
         update();
