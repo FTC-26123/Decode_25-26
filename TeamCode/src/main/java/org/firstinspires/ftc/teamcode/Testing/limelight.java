@@ -17,8 +17,8 @@ public class limelight extends OpMode {
     private boolean autoAlignPressedLast = false;
 
     // Constants
-    final double limelightMountAngleDegrees = 135;
-    final double limelightLensHeightInches = 15;
+    final double limelightMountAngleDegrees = 55;
+    final double limelightLensHeightInches = 14;
     final double goalHeightInches = 40;
     final double apriltagheight = 25;
 

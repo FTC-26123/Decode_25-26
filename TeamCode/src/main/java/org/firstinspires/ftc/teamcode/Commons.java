@@ -2,14 +2,20 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -34,14 +40,17 @@ public class Commons {
     public static DcMotor frontRightMotor;
     public static DcMotor backLeftMotor;
     public static DcMotor backRightMotor;
-    public static DcMotor armMotor;
-    public static DcMotor viperSlideMotor;
 
-    public static CRServo intakeServo;
+    public static DcMotor intake;
 
-    public  static Servo claw;
+    public static DcMotor windmill;
+    public static Servo gate;
 
-    public static DcMotor clawArm;
+    public int apriltag_height = 25;
+
+    public static DcMotorEx shooter;
+
+    public static Limelight3A limelight;
 
     public static IMU imu;
 
@@ -53,6 +62,13 @@ public class Commons {
 
     public static Telemetry telemetry;
 
+    public static NormalizedColorSensor colorSensor;
+
+    private final double LIMELIGHT_MOUNT_ANGLE_DEGREES = 135;
+    private final double LIMELIGHT_LENS_HEIGHT_INCHES = 15;
+    private final double GOAL_HEIGHT_INCHES = 40;
+    private final double APRILTAG_HEIGHT = 25;
+
     public static boolean isBusy = false;
 
     public static void init(HardwareMap hardwareMap, BooleanSupplier opModeIsActive, Telemetry telemetry) {
@@ -60,16 +76,26 @@ public class Commons {
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
         backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
         backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
-        armMotor = hardwareMap.get(DcMotor.class, "armRotationMotor");
-        viperSlideMotor = hardwareMap.get(DcMotor.class, "viperSlide");
-        clawArm = hardwareMap.get(DcMotor.class, "clawArm");
-        claw = hardwareMap.get(Servo.class, "claw");
-
-        viperSlideMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        windmill = hardwareMap.get(DcMotor.class, "windmill");
+        gate = hardwareMap.get(Servo.class, "gate");
+        shooter = hardwareMap.get(DcMotorEx.class, "launcher");
 
 
-        intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
+        limelight.start();
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
+        colorSensor.setGain(7);
+
+
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+
+
 
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(
@@ -78,7 +104,7 @@ public class Commons {
         );
 
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        odo.setOffsets(-84.0, -168.0);
+        odo.setOffsets(101.6, -165.1);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         odo.resetPosAndIMU();
@@ -215,74 +241,72 @@ public class Commons {
 
     /**Moves forward precisely using PID and odometry.<br><br>
      @param targetInches The number of inches to move forward relative to the robot position<br>
-     @param speed The maximum speed the robot at go to reach the target position. This value is
+     @param // speed The maximum speed the robot at go to reach the target position. This value is
      multiplied by 0.8. To counter this, multiply speed by 1.25 for more accurate speed. The speed
      will scale from the provided maximum to I+((error/originalError)*(timesLooped-1)), I being
      the integral value in PID at the very end*/
-    public static void PID_forward(double targetInches, double speed) throws InterruptedException {
-        if (initWarning()==1) {return;}
+    public static void PID_forward(double targetInches, double maxSpeed) throws InterruptedException {
+        if (initWarning() == 1) return;
 
         isBusy = true;
 
         odo.update();
         imu.resetYaw();
 
-        double currentPosition = getXPosition();
-        double targetPosition = targetInches + currentPosition;
+        double startPosition = getXPosition();
+        double targetPosition = startPosition + targetInches;
 
-        double error = targetPosition - currentPosition;
-        double originalError = targetPosition - currentPosition;
+        // PID constants (start with these, tune later)
+        double Kp = 0.04;      // proportional
+        double Ki = 0;         // integral
+        double Kd = 0.01;      // derivative
+        double aKp = 0.02;     // angle correction
 
-        double errorAngle = getYawAngle();
+        double previousError = 0;
+        double integral = 0;
 
-        double P;
-        double I = 0.1;
-        double D;
+        double error = targetPosition - getXPosition();
 
-        double aP;
-
-        double Kp = Commons.AUTON_MOTOR_MULTIPLIER_PERCENTAGE_CAP;
-        double Ki = 0.0025f;
-        double Kd = 0.08f;
-
-        double aKp = 0.05;
-
-        double maxI = 0.5f;
-
-        while ((error <= -1 || error >= 1) && opModeIsActive.getAsBoolean()) { // As long as robot isn't within an inch of target pos, loop
+        while (Math.abs(error) > 0.5 && opModeIsActive.getAsBoolean()) { // tolerance 0.5 inch
             odo.update();
-//            Checks
-            if (Math.abs(I) > maxI) {
-                I = maxI - error/originalError * Ki;
-            }
-//            PID Calculations
-            P = error/originalError * Kp; // Distance from target / original distance from target
-            I += error/originalError * Ki;
-            D = error/originalError * Kd;
-            aP = errorAngle * aKp; // Angle / Original Angle
-//            Powering Motors (Forward & Y Error)
-            double PID = (P+I+D)*speed;
-            if (PID > speed) {
-                PID = speed;
-            } else if (Math.abs(PID) > speed) {
-                PID = -speed;
-            }
-            double FaP = (aP)*speed;
 
-            frontLeftMotor.setPower(PID + FaP);
-            frontRightMotor.setPower(PID - FaP);
-            backLeftMotor.setPower(PID + FaP);
-            backRightMotor.setPower(PID - FaP);
+            double currentPosition = getXPosition();
+            error = targetPosition - currentPosition;
 
-            error = targetPosition - getXPosition();
-            errorAngle = getYawAngle();
+            // PID calculations
+            double P = Kp * error;
+            integral += Ki * error;
+            double D = Kd * (error - previousError);
+            previousError = error;
+
+            double output = P + integral + D;
+            output = Math.max(-maxSpeed, Math.min(maxSpeed, output)); // clamp power
+
+            // angle correction
+            double angleError = getYawAngle();
+            double angleAdjust = aKp * angleError;
+
+            // set mecanum motor powers
+            frontLeftMotor.setPower(output + angleAdjust);
+            frontRightMotor.setPower(output - angleAdjust);
+            backLeftMotor.setPower(output + angleAdjust);
+            backRightMotor.setPower(output - angleAdjust);
+
+            // live telemetry
+            telemetry.addData("X Position", getXPosition());
+            telemetry.addData("Error", error);
+            telemetry.update();
         }
 
-        Commons.stopMotorsForward();
-        Commons.stopMotors();
+        // stop motors
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
 
         isBusy = false;
     }
+
 
     /**Moves backward precisely using PID and odometry.<br><br>
      @param targetInches The number of inches to move backward relative to the robot position<br>
@@ -455,7 +479,7 @@ public class Commons {
         isBusy = false;
     }
 
-//    Robot Values Getters
+    //    Robot Values Getters
     public static double getYawAngle() {
         if (initWarning()==1) {return 181;}
 
@@ -475,10 +499,6 @@ public class Commons {
                 return backLeftMotor.getCurrentPosition();
             case 3:
                 return backRightMotor.getCurrentPosition();
-            case 4:
-                return armMotor.getCurrentPosition();
-            case 5:
-                return viperSlideMotor.getCurrentPosition();
             default:
                 System.err.println("\"" + Integer.toString(motor) + "\" is not recognized as a motor; only values 0 - 5 are supported.");
         }
@@ -486,7 +506,7 @@ public class Commons {
         return 0;
     }
 
-//    Basic Robot Movement
+    //    Basic Robot Movement
     @Deprecated
     public static void moveForward(int inches, double speed) throws InterruptedException {
         if (initWarning()==1) {return;}
@@ -496,14 +516,14 @@ public class Commons {
         double targetPosition = (inches) + odo.getPosition().getX(DistanceUnit.INCH);
 
 //        if (odo.getPosition().getX(DistanceUnit.INCH) < targetPosition) {
-            while (odo.getPosition().getX(DistanceUnit.INCH) < targetPosition && opModeIsActive.getAsBoolean()) {
-                odo.update();
-                startForward(speed*AUTON_MOTOR_MULTIPLIER_PERCENTAGE_CAP);
-                telemetry.update();
-                telemetry.addData("X", Math.ceil(Commons.odo.getPosition().getX(DistanceUnit.INCH)));
-                telemetry.addData("Y",  Math.ceil(Commons.odo.getPosition().getY(DistanceUnit.INCH)));
-                telemetry.update();
-            }
+        while (odo.getPosition().getX(DistanceUnit.INCH) < targetPosition && opModeIsActive.getAsBoolean()) {
+            odo.update();
+            startForward(speed*AUTON_MOTOR_MULTIPLIER_PERCENTAGE_CAP);
+            telemetry.update();
+            telemetry.addData("X", Math.ceil(Commons.odo.getPosition().getX(DistanceUnit.INCH)));
+            telemetry.addData("Y",  Math.ceil(Commons.odo.getPosition().getY(DistanceUnit.INCH)));
+            telemetry.update();
+        }
 //        } else if (odo.getPosition().getX(DistanceUnit.INCH) > targetPosition) {
 //            while (odo.getPosition().getX(DistanceUnit.INCH) > targetPosition && opModeIsActive.getAsBoolean()) {
 //                odo.update();
@@ -719,6 +739,57 @@ public class Commons {
     }
 
 
+    public static void initializeColorSensor(boolean displayColorValues, boolean displayDetectedColor) throws InterruptedException {
+
+        /* detectedColor= color that is being detected - use for code
+         * displayColorValues = true ... displays color values int col and double hue
+         * displayDetectedColor = true ... displays which color is being detected (eg. red)   */
+
+        // 2 is green
+        // 4 is purple
+
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        int col = colors.toColor();
+        double hue = JavaUtil.colorToHue(col);
+
+        byte detectedColor;
+
+        if (displayColorValues) {
+            telemetry.addData("Detected Hue", hue);
+            telemetry.addData("Detected Color", col);
+        }
+
+        if (hue > 15 && hue < 60) {
+            if (displayDetectedColor) {
+                telemetry.addLine("Detected Color: Red");
+            }
+            detectedColor = 1;
+
+        } else if (hue > 90 && hue < 180) {
+            if (displayDetectedColor) {
+                telemetry.addLine("Detected Color: Green");
+            }
+            detectedColor = 2;
+        } else if (hue > 200 && hue < 210) {
+            if (displayDetectedColor) {
+                telemetry.addLine("Detected Color: Blue");
+            }
+            detectedColor = 3;
+
+        } else if (hue > 225 && hue < 350) {
+            if (displayDetectedColor) {
+                telemetry.addLine("Detected Color: Purple");
+            }
+            detectedColor = 4;
+
+        }
+
+        telemetry.update();
+
+
+    }
+
     public static double getXPosition() {
         return odo.getEncoderX() / (19.89436789f * 25.4);
     }
@@ -726,5 +797,6 @@ public class Commons {
     public static double getYPosition() {
         return odo.getEncoderY() / (19.89436789f * 25.4);
     }
-}
 
+
+}

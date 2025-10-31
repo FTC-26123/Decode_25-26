@@ -29,9 +29,10 @@ public class TeleOp_BETA2 extends OpMode {
     public DcMotor backLeftMotor;
     public DcMotor backRightMotor;
     public DcMotorEx shooter;
+
     public DcMotor windmill;
     public DcMotor intake;
-    public CRServo gate;
+    public Servo gate;
     public DigitalChannel touch;
     public Servo light1;
 
@@ -40,9 +41,8 @@ public class TeleOp_BETA2 extends OpMode {
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
 
-
-    public short launchPowerMinus = 1500;
     public double launchPower;
+    public boolean launchStarted = false;
 
     private Limelight3A limelight;
 
@@ -86,7 +86,7 @@ public class TeleOp_BETA2 extends OpMode {
         shooter = hardwareMap.get(DcMotorEx.class, "launcher");
         windmill = hardwareMap.get(DcMotor.class, "windmill");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        gate = hardwareMap.get(CRServo.class, "gate");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         light1 = hardwareMap.get(Servo.class, "light1");
 
@@ -103,6 +103,8 @@ public class TeleOp_BETA2 extends OpMode {
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
         colorSensor.setGain(7);
 
+        launchStarted = false;
+
     }
 
     public boolean gateIsTouching(boolean addGateTelemetry) {
@@ -112,7 +114,7 @@ public class TeleOp_BETA2 extends OpMode {
             telemetry.update();
         }
 
-        return (!touch.getState());
+        return (touch.getState());
 
     }
 
@@ -229,38 +231,39 @@ public class TeleOp_BETA2 extends OpMode {
 
         launchPower = (gamepad2.right_trigger * 6000);
 
-        if (launchPower > 0.4) {
-            shooter.setVelocity(launchPower - launchPowerMinus);
+        if (launchPower <= 3000) {
+            launchPower = 3000;
         }
-
-        if (gamepad2.dpad_up) {
-            launchPowerMinus = 0;
-        } else if (gamepad2.dpad_down) {
-            launchPowerMinus = 1500;
+        if (gamepad2.right_trigger > 0.35) {
+            launchStarted = true;
         }
-
+        if (launchStarted) {
+            shooter.setVelocity(launchPower);
+        }
         if (gamepad2.right_bumper) {
+            shooter.setVelocity(0);
+            launchStarted = false;
+        }
+
+
+
+        if (gamepad2.left_trigger > 0.5) {
             intake.setPower(-0.5);
             windmill.setPower(1);
-        } else if (gamepad2.left_bumper) {
-            intake.setPower(0);
-            windmill.setPower(0);
         } else if (gamepad2.back) {
             intake.setPower(0.5);
             windmill.setPower(-1);
+        } else if (gamepad2.left_bumper) {
+            intake.setPower(0);
+            windmill.setPower(0);
         }
 
-        if (gamepad2.y) {
-            gate.setPower(0.2);
+        if (gamepad2.b) {
+            gate.setPosition(0.05);
         } else if (gamepad2.x) {
-            gate.setPower(0.2);
-            shooter.setVelocity(6000 - launchPowerMinus);
-        } else if (gamepad2.b) {
-            gate.setPower(-0.2);
-        } else if (gateIsTouching(true)) {
-            gate.setPower(0);
-        } else {
-            gate.setPower(0);
+            gate.setPosition(0.8);
+        } else if (gamepad2.y) {
+            gate.setPosition(0.5);
         }
 
         telemetry.setMsTransmissionInterval(30);
