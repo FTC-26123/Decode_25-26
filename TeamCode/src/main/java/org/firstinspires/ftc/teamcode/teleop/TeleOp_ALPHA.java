@@ -32,7 +32,6 @@ public class TeleOp_ALPHA extends OpMode {
     public DcMotor windmill;
     public DcMotor intake;
     public Servo gate;
-    public DigitalChannel touch;
     public Servo light1;
 
     public float frontLeftMotorSpeed = 0;
@@ -106,8 +105,6 @@ public class TeleOp_ALPHA extends OpMode {
 
         light1 = hardwareMap.get(Servo.class, "light1");
 
-        touch = hardwareMap.get(DigitalChannel.class, "touch");
-
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -120,17 +117,6 @@ public class TeleOp_ALPHA extends OpMode {
         colorSensor.setGain(7);
 
         launchStarted = false;
-
-    }
-
-    public boolean gateIsTouching(boolean addGateTelemetry) {
-        if (addGateTelemetry) {
-            telemetry.addLine("Gate Is Touching");
-        } else {
-            telemetry.update();
-        }
-
-        return (touch.getState());
 
     }
 
