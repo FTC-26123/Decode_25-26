@@ -22,44 +22,100 @@ public class goalwall_red_simple extends LinearOpMode {
         telemetry.setMsTransmissionInterval(35);
         waitForStart();
 
-        PID_backward(44,0.5);
+//        Use time based lateral movement until PID works
 
-        gate.setPosition(0.5);
+        runShooter(1990);
+        gate.setPosition(0.35);
 
-        shooter.setVelocity(1900);
-        runShooter(2025);
-        sleep(3000);
+        PID_backward(44,0.67);
+
+        sleep(800);
 
         gate.setPosition(0.8);
-        runShooter(2025);
+        runShooter(1990);
         sleep(1500);
 
         gate.setPosition(0.35);
-        runShooter(2025);
+        runShooter(1990);
         windmill.setPower(1);
         sleep(1500);
 
         gate.setPosition(0.8);
         windmill.setPower(0);
-        runShooter(2025);
+        runShooter(1990);
         sleep(1500);
 
         gate.setPosition(0.35);
-        runShooter(2025);
+        runShooter(1990);
         windmill.setPower(1);
         sleep(1500);
 
         gate.setPosition(0.8);
-        runShooter(2025);
+        runShooter(1990);
         sleep(1500);
 
         gate.setPosition(0.35);
         shooter.setVelocity(0);
         sleep(1000);
 
-        PID_rotateRight(90,0.7);
+        PID_rotateRight(49,0.4);
 
-        PID_forward(12,0.5);
+//        lateralRight(6,0.4);
+
+        startLateralRight(0.4);
+        sleep(1250);
+        stopMotorsLateralRight();
+
+        intake.setPower(-0.8);
+        windmill.setPower(1);
+
+        PID_forward(35,0.4);
+
+        intake.setPower(0);
+
+        sleep(1000);
+
+//        lateralLeft(6,0.4);
+
+        startLateralLeft(0.4);
+        sleep(1250);
+        stopMotorsLateralLeft();
+
+        windmill.setPower(0);
+
+        PID_rotateLeft(80,0.4);
+
+        shooter.setVelocity(1900);
+        runShooter(1990);
+        sleep(3000);
+
+        gate.setPosition(0.8);
+        runShooter(1990);
+        sleep(1500);
+
+
+        gate.setPosition(0.35);
+        runShooter(1990);
+        windmill.setPower(1);
+        sleep(1500);
+
+        gate.setPosition(0.8);
+        windmill.setPower(0);
+        runShooter(1990);
+        sleep(1500);
+
+        gate.setPosition(0.35);
+        runShooter(1990);
+        windmill.setPower(1);
+        sleep(1500);
+
+        gate.setPosition(0.8);
+        runShooter(1990);
+        sleep(1500);
+
+        gate.setPosition(0.35);
+        shooter.setVelocity(0);
+        sleep(1000);
 
     }
 }

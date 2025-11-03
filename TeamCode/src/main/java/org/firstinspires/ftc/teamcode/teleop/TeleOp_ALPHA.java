@@ -59,22 +59,11 @@ public class TeleOp_ALPHA extends OpMode {
 
     double actualvelocity = 0;
 
-    public double currentShooterVelocity = 0;
+    double actualVelocity;
 
+    String intakeStatus = "off";
 
-    public boolean gateIsPowered;
-    ElapsedTime gateForwardShooting = new ElapsedTime();
-
-    ElapsedTime gateBackwardShooting = new ElapsedTime();
-
-    ElapsedTime waitTimeShooting = new ElapsedTime();
-
-    ElapsedTime gateForwardDumping = new ElapsedTime();
-
-    ElapsedTime gateBackwardDumping = new ElapsedTime();
-
-    ElapsedTime waitTimeDumping = new ElapsedTime();
-
+    public ElapsedTime intakeTime = new ElapsedTime();
 
 
     //lights constant
@@ -117,6 +106,8 @@ public class TeleOp_ALPHA extends OpMode {
         colorSensor.setGain(7);
 
         launchStarted = false;
+
+        intakeTime.reset();
 
     }
 
@@ -233,69 +224,56 @@ public class TeleOp_ALPHA extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
-        launchPower = (gamepad2.right_trigger * 2075);
+//        launchPower = (gamepad2.right_trigger * 2075);
 
-        if (launchPower <= 2075) {
-            launchPower = 2075;
-        }
-        if (gamepad2.right_trigger > 0.35) {
-            launchStarted = true;
-        }
-        if (launchStarted) {
-            shooter.setVelocity(launchPower);
-        }
+        actualVelocity = shooter.getVelocity();
+
+        //Launcher Controls
+//        if (launchPower <= 2075) {
+//            launchPower = 2075;
+//        }
+//        if (gamepad2.right_trigger > 0.35) {
+//            launchStarted = true;
+//        }
+//        if (launchStarted) {
+//            shooter.setVelocity(launchPower);
+//        }
         if (gamepad2.right_bumper) {
             shooter.setVelocity(0);
             launchStarted = false;
         }
 
 
-
-        if (gamepad2.left_trigger > 0.5) {
+        //Intake Controls
+        if (gamepad2.left_bumper && intakeStatus.equals("off") && intakeTime.milliseconds()>500) {
+            intakeStatus = "on";
             intake.setPower(-0.5);
             windmill.setPower(1);
-        } else if (gamepad2.back) {
-            intake.setPower(0.5);
-            windmill.setPower(-1);
-        } else if (gamepad2.left_bumper) {
+            intakeTime.reset();
+        }
+        if (gamepad2.left_bumper && intakeStatus.equals("on") && intakeTime.milliseconds()>500) {
+            intakeStatus = "off";
             intake.setPower(0);
             windmill.setPower(0);
+            intakeTime.reset();
+        }
+        if (gamepad2.b && intakeStatus.equals("off") && intakeTime.milliseconds()>500) {
+            intakeStatus = "on";
+            intake.setPower(0.5);
+            windmill.setPower(-1);
+            intakeTime.reset();
         }
 
-        /*if (gamepad2.b && !gateIsPowered && currentShooterVelocity>=1500) {
+        //Intake + Launcher Controls
+        if (gamepad2.right_trigger > 0.6 && actualVelocity <= 2000) {
+            launchStarted = true;
+            shooter.setVelocity(2070);
+        } else if (gamepad2.right_trigger > 0.6 && actualVelocity >= 2000) {
+            launchStarted = true;
             gate.setPosition(0.8);
-            gateForwardShooting.reset();
-            gateIsPowered = true;
-            light1.setPosition(0.47);
-        } else if (gateForwardShooting.milliseconds() >= 700 && gateForwardShooting.milliseconds() <= 750) {
-            waitTimeShooting.reset();
-        } else if (waitTimeShooting.milliseconds() >= 1250 && waitTimeShooting.milliseconds() <= 1300) {
-            gate.setPosition(0.5);
-            gateBackwardShooting.reset();
-        } else if (gateBackwardShooting.milliseconds() >= 700 && gateForwardShooting.milliseconds() <= 750) {
-            gateIsPowered = false;
-            light1.setPosition(0.35);
-        }
-
-        if (gamepad2.x && !gateIsPowered) {
+            shooter.setVelocity(2070);
+        } else if (gamepad2.left_trigger > 0.6) {
             gate.setPosition(0.05);
-            gateForwardDumping.reset();
-            gateIsPowered = true;
-            light1.setPosition(0.29);
-        } else if (gateForwardDumping.milliseconds() >= 700 && gateForwardDumping.milliseconds() <= 750) {
-            waitTimeDumping.reset();
-        } else if (waitTimeDumping.milliseconds() >= 1250 && waitTimeDumping.milliseconds() <= 1300) {
-            gate.setPosition(0.5);
-            gateBackwardDumping.reset();
-        } else if (gateBackwardDumping.milliseconds() >= 700 && gateBackwardDumping.milliseconds() <=750) {
-            gateIsPowered = false;
-            light1.setPosition(0.35);
-        }*/
-
-        if (gamepad2.x) {
-            gate.setPosition(0.05);
-        } else if (gamepad2.b) {
-            gate.setPosition(0.8);
         } else {
             gate.setPosition(0.35);
         }

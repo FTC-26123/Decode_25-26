@@ -106,7 +106,7 @@ public class Commons {
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         odo.setOffsets(101.6, -165.1);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
 
         Commons.opModeIsActive = opModeIsActive;
@@ -507,7 +507,7 @@ public class Commons {
     }
 
     //    Basic Robot Movement
-    @Deprecated
+
     public static void moveForward(int inches, double speed) throws InterruptedException {
         if (initWarning()==1) {return;}
 
@@ -540,7 +540,7 @@ public class Commons {
         isBusy = false;
     }
 
-    @Deprecated
+
     public static void moveBackward(int inches, double speed) throws InterruptedException {
         if (initWarning()==1) {return;}
 
