@@ -124,6 +124,12 @@ public class Commons {
         }
         return 0;
     }
+/** <p>
+ * @param targetTurnAngle This function turns <strong>left</strong> in the respective turn angle received.
+ * @param speed This function denotes the speed of the turn.
+ *              This function uses PID to calculate the turn more accurately.
+ *             </p>
+ */
 
     public static void PID_rotateLeft(double targetTurnAngle, double speed) throws InterruptedException {
         if (initWarning()==1) {return;}
@@ -181,7 +187,12 @@ public class Commons {
 
         isBusy = false;
     }
-
+    /** <p>
+     * @param targetTurnAngle This function turns <strong>right</strong> in the respective turn angle received.
+     * @param speed This function denotes the speed of the turn.
+     *              This function uses PID to calculate the turn more accurately.
+     *             </p>
+     */
     public static void PID_rotateRight(double targetTurnAngle, double speed) throws InterruptedException {
         if (initWarning()==1) {return;}
 
@@ -241,7 +252,7 @@ public class Commons {
 
     /**Moves forward precisely using PID and odometry.<br><br>
      @param targetInches The number of inches to move forward relative to the robot position<br>
-     @param // speed The maximum speed the robot at go to reach the target position. This value is
+     @param maxSpeed The maximum speed the robot at go to reach the target position. This value is
      multiplied by 0.8. To counter this, multiply speed by 1.25 for more accurate speed. The speed
      will scale from the provided maximum to I+((error/originalError)*(timesLooped-1)), I being
      the integral value in PID at the very end*/
@@ -789,14 +800,23 @@ public class Commons {
 
 
     }
-
+/** <p> Reports in inches</p>*/
     public static double getXPosition() {
         return odo.getEncoderX() / (19.89436789f * 25.4);
     }
-
+    /** <p> Reports in inches</p>*/
     public static double getYPosition() {
         return odo.getEncoderY() / (19.89436789f * 25.4);
     }
+
+    /** <p>
+     * @param velocity The velocity that the shooter runs at (a value from <strong>1</strong> to <strong>~2100</strong>) </p><p>This code automatically sets the direction to reverse.</p> */
+    public static void runShooter(double velocity) {
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setVelocity(velocity);
+    }
+
+
 
 
 }
