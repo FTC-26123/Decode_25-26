@@ -64,8 +64,6 @@ public class Commons {
 
     public static NormalizedColorSensor colorSensor;
 
-
-
     private final double LIMELIGHT_MOUNT_ANGLE_DEGREES = 135;
     private final double LIMELIGHT_LENS_HEIGHT_INCHES = 15;
     private final double GOAL_HEIGHT_INCHES = 40;
@@ -105,7 +103,7 @@ public class Commons {
                         RevHubOrientationOnRobot.UsbFacingDirection.RIGHT))
         );
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         odo.setOffsets(101.6, -165.1);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);

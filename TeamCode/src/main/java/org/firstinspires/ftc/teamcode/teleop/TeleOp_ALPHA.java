@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 
-import static org.firstinspires.ftc.teamcode.Commons.runShooter;
 import static java.lang.Thread.sleep;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -11,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,11 +19,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@TeleOp(name = "TeleOp_ALPHA_practice")
-public class TeleOp_ALPHA_practice extends OpMode {
+@TeleOp(name = "TeleOp_ALPHA_no_Limelight")
+public class TeleOp_ALPHA extends OpMode {
     //Initializing and declaring all variables/motors
     public final float MOTOR_MULTIPLIER_PERCENTAGE_CAP = 0.55F;
     public DcMotor frontLeftMotor;
@@ -36,12 +33,13 @@ public class TeleOp_ALPHA_practice extends OpMode {
     public DcMotor intake;
     public Servo gate;
     public Servo light1;
-    public Servo light2;
 
     public float frontLeftMotorSpeed = 0;
     public float frontRightMotorSpeed = 0;
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
+
+    public double launchPower;
     public boolean launchStarted = false;
 
     private Limelight3A limelight;
@@ -63,41 +61,15 @@ public class TeleOp_ALPHA_practice extends OpMode {
 
     double actualVelocity;
 
-    public ElapsedTime intakeTime = new ElapsedTime();
+    String intakeStatus = "off";
 
+    public ElapsedTime intakeTime = new ElapsedTime();
 
 
     //lights constant
     private ElapsedTime runtime = new ElapsedTime();
 
-
-
     public NormalizedColorSensor colorSensor;
-
-    //Controller Constants
-    private final double GATE_IDLE = 0.35;
-    private final double GATE_MOVE_RIGHT = 0.80;
-    private final double GATE_MOVE_LEFT = 0.05;
-    private final double ZERO = 0;
-    private final double LAUNCH_POWER = 2075;
-
-    private final double INTAKE_POWER = 0.5;
-
-    private final double WINDMILL_POWER = 1;
-
-    private final double TRIGGER_DEADZONE = 0.5;
-
-    private final float RED = 0.280f;
-    private final float ORANGE = 0.333f;
-    private final float YELLOW = 0.388f;
-    private final float LIGHT_GREEN = 0.444f;
-    private final float GREEN = 0.500f;
-    private final float AZURE = 0.555f;
-    private final float BLUE = 0.611f;
-    private final float INDIGO = 0.660f;
-    private final float VIOLET = 0.722f;
-    private final byte WHITE = 1;
-    private final byte LIGHT_OFF = 0;
 
 
     public void update() {
@@ -121,7 +93,6 @@ public class TeleOp_ALPHA_practice extends OpMode {
         gate = hardwareMap.get(Servo.class, "gate");
 
         light1 = hardwareMap.get(Servo.class, "light1");
-        light2 = hardwareMap.get(Servo.class, "light2");
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         shooter.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -138,13 +109,7 @@ public class TeleOp_ALPHA_practice extends OpMode {
 
         intakeTime.reset();
 
-
-
-
-
     }
-
-
 
     @Override
     public void start() {
@@ -259,42 +224,58 @@ public class TeleOp_ALPHA_practice extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
+//        launchPower = (gamepad2.right_trigger * 2075);
+
         actualVelocity = shooter.getVelocity();
 
+        //Launcher Controls
+//        if (launchPower <= 2075) {
+//            launchPower = 2075;
+//        }
+//        if (gamepad2.right_trigger > 0.35) {
+//            launchStarted = true;
+//        }
+//        if (launchStarted) {
+//            shooter.setVelocity(launchPower);
+//        }
+        if (gamepad2.right_bumper) {
+            shooter.setVelocity(0);
+            launchStarted = false;
+        }
 
-        if(gamepad2.left_trigger > TRIGGER_DEADZONE){
-            intake.setPower(-INTAKE_POWER);
-            windmill.setPower(WINDMILL_POWER);
-            light2.setPosition(GREEN);
+
+        //Intake Controls
+        if (gamepad2.left_bumper && intakeStatus.equals("off") && intakeTime.milliseconds()>500) {
+            intakeStatus = "on";
+            intake.setPower(-0.5);
+            windmill.setPower(1);
+            intakeTime.reset();
         }
-        if(gamepad2.left_bumper){
-            intake.setPower(ZERO);
-            windmill.setPower(ZERO);
-            light2.setPosition(RED);
+        if (gamepad2.left_bumper && intakeStatus.equals("on") && intakeTime.milliseconds()>500) {
+            intakeStatus = "off";
+            intake.setPower(0);
+            windmill.setPower(0);
+            intakeTime.reset();
         }
-        if(gamepad2.back){
-            intake.setPower(INTAKE_POWER);
-            windmill.setPower(-WINDMILL_POWER);
-            light2.setPosition(ORANGE);
+        if (gamepad2.b && intakeStatus.equals("off") && intakeTime.milliseconds()>500) {
+            intakeStatus = "on";
+            intake.setPower(0.5);
+            windmill.setPower(-1);
+            intakeTime.reset();
         }
 
         //Intake + Launcher Controls
-        if (gamepad2.right_trigger > TRIGGER_DEADZONE) {
-            shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-            shooter.setVelocity(LAUNCH_POWER);
-        }
-        if (gamepad2.right_bumper) {
-            shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-            shooter.setVelocity(ZERO);
-        }
-
-        if(gamepad2.x) {
-            gate.setPosition(GATE_MOVE_LEFT);
-        }
-        if(gamepad2.b && actualVelocity>=2000) {
-            gate.setPosition(GATE_MOVE_RIGHT);
+        if (gamepad2.right_trigger > 0.6 && actualVelocity <= 2000) {
+            launchStarted = true;
+            shooter.setVelocity(2070);
+        } else if (gamepad2.right_trigger > 0.6 && actualVelocity >= 2000) {
+            launchStarted = true;
+            gate.setPosition(0.8);
+            shooter.setVelocity(2070);
+        } else if (gamepad2.left_trigger > 0.6) {
+            gate.setPosition(0.05);
         } else {
-            gate.setPosition(GATE_IDLE);
+            gate.setPosition(0.35);
         }
 
         telemetry.setMsTransmissionInterval(30);
@@ -305,3 +286,5 @@ public class TeleOp_ALPHA_practice extends OpMode {
 
     }
 }
+
+
