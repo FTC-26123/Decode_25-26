@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 
-import static org.firstinspires.ftc.teamcode.Commons.runShooter;
 import static java.lang.Thread.sleep;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -11,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,8 +18,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-
-import java.util.ArrayList;
 
 @TeleOp(name = "TeleOp_ALPHA_competition")
 public class TeleOp_ALPHA_competition extends OpMode {
@@ -36,11 +34,12 @@ public class TeleOp_ALPHA_competition extends OpMode {
     public Servo gate;
     public Servo light1;
     public Servo light2;
-
     public float frontLeftMotorSpeed = 0;
     public float frontRightMotorSpeed = 0;
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
+
+    public double launchPower;
     public boolean launchStarted = false;
 
     private Limelight3A limelight;
@@ -52,6 +51,10 @@ public class TeleOp_ALPHA_competition extends OpMode {
     final double goalHeight = 40;
     final double APRILTAG_HEIGHT = 25;
 
+    //lights constant
+    private ElapsedTime runtime = new ElapsedTime();
+
+    public NormalizedColorSensor colorSensor;
     double launchAngleDegrees = 45.0;
     double launchHeight = 10.0;
     double fudgeFactor = 0.3;
@@ -60,45 +63,21 @@ public class TeleOp_ALPHA_competition extends OpMode {
 
     double actualvelocity = 0;
 
-    double actualVelocity;
+    // CODE CONSTANTS
+    double IDLE = 0.35;
 
-    public ElapsedTime intakeTime = new ElapsedTime();
+    double GATE_MOVE_RIGHT = 0.80;
 
-    public ElapsedTime OpModeRunTime = new ElapsedTime();
+    double GATE_MOVE_LEFT = 0.05;
+    double ZERO = 0.00;
+    double LAUNCH_POWER = 1925.00;
+    double MIN_LAUNCH_POWER = 1900.00;
+    double INTAKE_ON = -0.5;
+    double INTAKE_BACK = 0.5;
+    double WINDMILL_ON = 1;
+    double WINDMILL_BACK = -1;
 
-
-    //lights constant
-    private ElapsedTime runtime = new ElapsedTime();
-
-
-
-    public NormalizedColorSensor colorSensor;
-
-    //Controller Constants
-    private final double GATE_IDLE = 0.35;
-    private final double GATE_MOVE_RIGHT = 0.80;
-    private final double GATE_MOVE_LEFT = 0.05;
-    private final double ZERO = 0;
-    private final double LAUNCH_POWER = 2075;
-
-    private final double INTAKE_POWER = 0.5;
-
-    private final double WINDMILL_POWER = 1;
-
-    private final double TRIGGER_DEADZONE = 0.5;
-
-    private final float RED = 0.280f;
-    private final float ORANGE = 0.333f;
-    private final float YELLOW = 0.388f;
-    private final float LIGHT_GREEN = 0.444f;
-    private final float GREEN = 0.500f;
-    private final float AZURE = 0.555f;
-    private final float BLUE = 0.611f;
-    private final float INDIGO = 0.660f;
-    private final float VIOLET = 0.722f;
-    private final byte WHITE = 1;
-    private final byte LIGHT_OFF = 0;
-
+    public ElapsedTime TeleOpRuntime = new ElapsedTime();
 
     public void update() {
 //     Robot Motor Power Limits
@@ -135,21 +114,12 @@ public class TeleOp_ALPHA_competition extends OpMode {
         colorSensor.setGain(7);
 
         launchStarted = false;
-
-        intakeTime.reset();
-
-
-
-
-
     }
-
-
 
     @Override
     public void start() {
         runtime.reset();
-        OpModeRunTime.reset();
+        TeleOpRuntime.reset();
     }
 
     @Override
@@ -173,55 +143,55 @@ public class TeleOp_ALPHA_competition extends OpMode {
             telemetry.addLine("Detected Color: Purple");
             light1.setPosition(0.67);
         } else {
-            light1.setPosition(0);
+            light1.setPosition(ZERO);
         }
 
         double time = runtime.seconds();
         // Check for the distance
         LLResult result = limelight.getLatestResult();
 
-        //limelight
-        double tx = 0;
-        double ty = 0;
-        Pose3D botpose = null;
-        double distance = 0;
-        // modify :
-        double shooterVelocity = -1;
-        double k = fudgeFactor;
-        double flywheel = 1.89;
-
-        if (result != null && result.isValid()) {
-            tx = result.getTx();
-            ty = result.getTy();
-            botpose = result.getBotpose();
-
-            // --- Distance Calculation ---
-            double angleToGoalDegrees = LIMELIGHT_MOUNT_ANGLE_DEGREES + ty;
-            double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
-            distance = (APRILTAG_HEIGHT - LIMELIGHT_LENS_HEIGHT_INCHES) / Math.tan(angleToGoalRadians);
-
-            telemetry.addData("distance", distance);
-
-            double g = 386.0; // gravity in in/s^2
-            double theta = Math.toRadians(launchAngleDegrees);
-            double y = goalHeight - launchHeight;
-
-            double denominator = 2 * Math.pow(Math.cos(theta), 2) * (distance * Math.tan(theta) - y);
-            if (denominator <= 0)
-                telemetry.addLine("Too close");
-
-            double velocity = Math.sqrt((g * distance * distance) / denominator) * (1 + k);
-
-            finalvelocity = velocity / flywheel;
-
-            shooter.setVelocity(finalvelocity);
-
-        }
-
-        if (result == null || !result.isValid()) {
-            // Show red even when april tag is not visible to bot
-            telemetry.addLine("No Target Found");
-        }
+//        //limelight
+//        double tx = 0;
+//        double ty = 0;
+//        Pose3D botpose = null;
+//        double distance = 0;
+//        // modify :
+//        double shooterVelocity = -1;
+//        double k = fudgeFactor;
+//        double flywheel = 1.89;
+//
+//        if (result != null && result.isValid()) {
+//            tx = result.getTx();
+//            ty = result.getTy();
+//            botpose = result.getBotpose();
+//
+//            // --- Distance Calculation ---
+//            double angleToGoalDegrees = LIMELIGHT_MOUNT_ANGLE_DEGREES + ty;
+//            double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
+//            distance = (APRILTAG_HEIGHT - LIMELIGHT_LENS_HEIGHT_INCHES) / Math.tan(angleToGoalRadians);
+//
+//            telemetry.addData("distance", distance);
+//
+//            double g = 386.0; // gravity in in/s^2
+//            double theta = Math.toRadians(launchAngleDegrees);
+//            double y = goalHeight - launchHeight;
+//
+//            double denominator = 2 * Math.pow(Math.cos(theta), 2) * (distance * Math.tan(theta) - y);
+//            if (denominator <= 0)
+//                telemetry.addLine("Too close");
+//
+//            double velocity = Math.sqrt((g * distance * distance) / denominator) * (1 + k);
+//
+//            finalvelocity = velocity / flywheel;
+//
+//            shooter.setVelocity(finalvelocity);
+//
+//        }
+//
+//        if (result == null || !result.isValid()) {
+//            // Show red even when april tag is not visible to bot
+//            telemetry.addLine("No Target Found");
+//        }
 
         actualvelocity = finalvelocity;
 
@@ -260,47 +230,52 @@ public class TeleOp_ALPHA_competition extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
-        actualVelocity = shooter.getVelocity();
+        launchPower = (gamepad2.right_trigger * 2075);
 
-
-        if(gamepad2.left_trigger > TRIGGER_DEADZONE){
-            intake.setPower(-INTAKE_POWER);
-            windmill.setPower(WINDMILL_POWER);
-            light2.setPosition(GREEN);
+        if (launchPower <= LAUNCH_POWER) {
+            launchPower = LAUNCH_POWER;
         }
-        if(gamepad2.left_bumper){
-            intake.setPower(ZERO);
-            windmill.setPower(ZERO);
-            light2.setPosition(RED);
+        if (gamepad2.right_trigger > 0.35) {
+            launchStarted = true;
         }
-        if(gamepad2.back){
-            intake.setPower(INTAKE_POWER);
-            windmill.setPower(-WINDMILL_POWER);
-            light2.setPosition(ORANGE);
-        }
-
-        //Intake + Launcher Controls
-        if (gamepad2.right_trigger > TRIGGER_DEADZONE) {
-            shooter.setDirection(DcMotorSimple.Direction.REVERSE);
-            shooter.setVelocity(LAUNCH_POWER);
+        if (launchStarted) {
+            shooter.setVelocity(launchPower);
         }
         if (gamepad2.right_bumper) {
-            shooter.setDirection(DcMotorSimple.Direction.REVERSE);
             shooter.setVelocity(ZERO);
+            launchStarted = false;
         }
 
-        if(gamepad2.x) {
+
+        if (gamepad2.left_trigger > 0.5) {
+            intake.setPower(INTAKE_ON);
+            windmill.setPower(WINDMILL_ON);
+            light2.setPosition(0.333);
+        } else if (gamepad2.back) {
+            intake.setPower(INTAKE_BACK);
+            windmill.setPower(WINDMILL_BACK);
+            light2.setPosition(0.28);
+        } else if (gamepad2.left_bumper) {
+            intake.setPower(ZERO);
+            windmill.setPower(ZERO);
+            light2.setPosition(0);
+        }
+
+        if (gamepad2.x) {
             gate.setPosition(GATE_MOVE_LEFT);
-        }
-        if(gamepad2.b && actualVelocity>=2000) {
-            gate.setPosition(GATE_MOVE_RIGHT);
+        } else if (gamepad2.b) {
+            if (shooter.getVelocity() > MIN_LAUNCH_POWER) {
+                gate.setPosition(GATE_MOVE_RIGHT);
+            }
         } else {
-            gate.setPosition(GATE_IDLE);
+            gate.setPosition(IDLE);
         }
 
-        //turns of OpMode after 2min 0.25 seconds (OpModeRunTime)
-        if (OpModeRunTime.seconds() >= 120.25) {
-            telemetry.addLine("Stopping Competition OpMode");
+        telemetry.addData("Runtime:", TeleOpRuntime.seconds());
+
+        telemetry.setMsTransmissionInterval(30);
+
+        if (TeleOpRuntime.seconds() >= 120.25) {
             requestOpModeStop();
         }
 
