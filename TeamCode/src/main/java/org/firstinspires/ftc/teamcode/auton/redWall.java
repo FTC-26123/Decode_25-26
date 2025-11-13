@@ -40,15 +40,17 @@ public class redwall extends OpMode {
 
     public Servo light1;
     
-    final int shooterVelocity = 1925;
+    final int shooterVelocity = 1930;
     final float NEUTRAL_POS = 0.35f;
     final float SHOOT_POS = 0.80f;
 
     ElapsedTime timer = new ElapsedTime();
 
-    public void set_timer(int milliseconds) {
+    public void wait(int milliseconds) {
         timer.reset();
-        while (timer.milliseconds() <= milliseconds) {}
+        while (true) {
+            if (timer.milliseconds() >= milliseconds) break;
+        }
     }
 
     @Override
@@ -66,7 +68,7 @@ public class redwall extends OpMode {
         pathTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(117.47368421052632, 128.65263157894736, Math.toRadians(42)));
+        follower.setStartingPose(new Pose(119.353, 127.456, Math.toRadians(42)));
 
         paths = new Paths(follower);
 
@@ -105,27 +107,27 @@ public class redwall extends OpMode {
             Shoot1set = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(123.404, 131.508), new Pose(88.291, 98.589))
+                            new BezierLine(new Pose(119.353, 127.456), new Pose(89.810+3, 98.420+3))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(43))
+                    .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(45))
                     .build();
 
             go2ndset = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(88.291, 98.589),
-                                    new Pose(86.096, 96.394),
-                                    new Pose(97.407, 90.823)
+                                    new Pose(89.810+3, 98.420+3),
+                                    new Pose(83.395, 87.109),
+                                    new Pose(99.433, 82.382)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
                     .build();
 
             Intake2ndset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(97.407, 90.823), new Pose(131.508, 90.654))
+                            new BezierLine(new Pose(99.433-1, 82.382), new Pose(126.106, 81.876))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
@@ -133,31 +135,30 @@ public class redwall extends OpMode {
             Shoot2ndset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(131.508, 90.654), new Pose(88.122, 98.589))
+                            new BezierLine(new Pose(126.106, 81.876), new Pose(89.810+3, 98.420+3))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
                     .build();
 
             go3rdset = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(88.122, 98.589),
-                                    new Pose(84.914, 66.851),
-                                    new Pose(99.939, 67.020)
+                                    new Pose(89.810+3, 98.420+3),
+                                    new Pose(86.096, 61.111),
+                                    new Pose(99.939, 57.566)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(4), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
                     .build();
 
             Intake3rdset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(99.939, 67.020), new Pose(131.170, 66.851))
+                            new BezierLine(new Pose(99.939+2, 57.566-0), new Pose(125.599, 57.735))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
-
         }
     }
 
@@ -178,23 +179,25 @@ public class redwall extends OpMode {
                     light1.setPosition(0.333);
                     // Ball #1
                     gate.setPosition(SHOOT_POS);
-                    set_timer(2500);
+                    wait(2000);
+                    shooter.setVelocity(shooterVelocity+20);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
-                    set_timer(1500);
+                    wait(1500);
                     windmill.setPower(0);
                     // Ball #2
                     gate.setPosition(SHOOT_POS);
-                    set_timer(1500);
+                    wait(1000);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
-                    set_timer(1250);
+                    wait(1250);
                     windmill.setPower(0);
+                    shooter.setVelocity(shooterVelocity);
                     // Ball #3
                     gate.setPosition(SHOOT_POS);
-                    set_timer(800);
+                    wait(1000);
                     gate.setPosition(NEUTRAL_POS);
                     setPathState(2);
                 }
@@ -202,7 +205,7 @@ public class redwall extends OpMode {
             case 2: // get ready to intake
                 if (!follower.isBusy()) {
                     light1.setPosition(0.388);
-                    intake.setPower(-0.85);
+                    intake.setPower(-1);
                     windmill.setPower(1.0);
                     shooter.setVelocity(1200);
                     follower.followPath(paths.go2ndset, 0.8, false);
@@ -213,16 +216,16 @@ public class redwall extends OpMode {
             case 3: //intake
                 if (!follower.isBusy()) {
                     light1.setPosition(0.444);
-                    follower.followPath(paths.Intake2ndset, 0.5, true);
+                    follower.followPath(paths.Intake2ndset, 0.25, true);
                     setPathState(4);
                 }
 
             case 4:
                 if (!follower.isBusy()) {
                     light1.setPosition(0.500);
-                    shooter.setVelocity(shooterVelocity);
-                    intake.setPower(0.0);
-                    windmill.setPower(0.4);
+                    shooter.setVelocity(shooterVelocity+15);
+                    intake.setPower(-0.5);
+                    windmill.setPower(0.5);
                     follower.followPath(paths.Shoot2ndset);
                     setPathState(5);
                 }
@@ -231,25 +234,29 @@ public class redwall extends OpMode {
             case 5:
                 if (!follower.isBusy()) {
                     light1.setPosition(0.555);
+                    intake.setPower(0);
                     // Ball #1
                     gate.setPosition(SHOOT_POS);
-                    set_timer(1500);
+                    wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
-                    set_timer(1500);
+                    shooter.setVelocity(shooterVelocity+35);
+                    intake.setPower(-1);
+                    wait(1500);
                     windmill.setPower(0);
                     // Ball #2
                     gate.setPosition(SHOOT_POS);
-                    set_timer(1500);
+                    wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
-                    set_timer(1500);
+                    shooter.setVelocity(shooterVelocity+15);
+                    wait(3000);
                     windmill.setPower(0);
                     // Ball #3
                     gate.setPosition(SHOOT_POS);
-                    set_timer(1500);
+                    wait(1500);
                     gate.setPosition(NEUTRAL_POS);
                     setPathState(6);
                 }
@@ -259,8 +266,8 @@ public class redwall extends OpMode {
                 if (!follower.isBusy()) {
                     light1.setPosition(0.611);
                     shooter.setVelocity(0);
-                    intake.setPower(-0.85);
-                    windmill.setPower(1);
+                    intake.setPower(1); // outtake if ball is stuck
+                    windmill.setPower(-1); // outtake if ball is stuck
                     follower.followPath(paths.go3rdset, 0.8, false);
                     setPathState(7);
                 }
@@ -269,9 +276,14 @@ public class redwall extends OpMode {
             case 7:
                 if (!follower.isBusy()) {
                     light1.setPosition(0.667);
-                    follower.followPath(paths.Intake3rdset, 0.5, true);
+                    intake.setPower(-1); //intake on
+                    windmill.setPower(1); //intake on
+                    follower.followPath(paths.Intake3rdset, 0.25, true);
+                    wait(1000);
                     setPathState(-1); //stop
                 }
+
+
 
 //            case 8:
 //                if (!follower.isBusy()) {
@@ -289,27 +301,27 @@ public class redwall extends OpMode {
 //                    light1.setPosition(0.667);
 //                    // Ball #1
 //                    gate.setPosition(SHOOT_POS);
-//                    set_timer(1500);
+//                    wait(1500);
 //                    gate.setPosition(NEUTRAL_POS);
 //
 //                    windmill.setPower(0.75);
-//                    set_timer(1500);
+//                    wait(1500);
 //                    windmill.setPower(0);
 //                    // Ball #2
 //                    gate.setPosition(SHOOT_POS);
-//                    set_timer(1500);
+//                    wait(1500);
 //                    gate.setPosition(NEUTRAL_POS);
 //
 //                    windmill.setPower(0.75);
-//                    set_timer(1500);
+//                    wait(1500);
 //                    windmill.setPower(0);
 //                    // Ball #3
 //                    gate.setPosition(SHOOT_POS);
-//                    set_timer(1500);
+//                    wait(1500);
 //                    gate.setPosition(NEUTRAL_POS);
 //                    intake.setPower(-0.8);
 //                    windmill.setPower(0.75);
-//                    set_timer(500);
+//                    wait(500);
 //                    setPathState(8);
 //                }
 //                break;
@@ -326,8 +338,6 @@ public class redwall extends OpMode {
 //                break;
         }
     }
-
-
 
     private void setPathState(int s) {
         pathState = s;
