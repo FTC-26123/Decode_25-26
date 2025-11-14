@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.auton;
 
 import static java.lang.Thread.sleep;
 
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -48,9 +49,11 @@ public class redwall extends OpMode {
 
     public void wait(int milliseconds) {
         timer.reset();
-        while (true) {
-            if (timer.milliseconds() >= milliseconds) break;
-        }
+        while (true) {if (timer.milliseconds() >= milliseconds) break;}
+    }
+
+    public void velocityCheck(int ms, int velocity) {
+        while (shooter.getVelocity()<velocity) {wait(ms);}
     }
 
     @Override
@@ -74,6 +77,9 @@ public class redwall extends OpMode {
 
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
+
+        telemetry.setMsTransmissionInterval(20);
+
     }
 
     @Override
@@ -91,12 +97,16 @@ public class redwall extends OpMode {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
+        telemetry.addData("Shooter Velocity", shooter.getVelocity());
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
+
+
+
+        telemetry.update();
     }
 
     /** ---------------- PATH DEFINITIONS ---------------- **/
@@ -137,7 +147,7 @@ public class redwall extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(126.106, 81.876), new Pose(89.810+3, 98.420+3))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(42))
                     .build();
 
             go3rdset = follower
@@ -149,7 +159,7 @@ public class redwall extends OpMode {
                                     new Pose(99.939, 57.566)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(0))
                     .build();
 
             Intake3rdset = follower
@@ -178,8 +188,9 @@ public class redwall extends OpMode {
                 if(!follower.isBusy()) {
                     light1.setPosition(0.333);
                     // Ball #1
+                    velocityCheck(5, 1920);
                     gate.setPosition(SHOOT_POS);
-                    wait(2000);
+                    wait(1500);
                     shooter.setVelocity(shooterVelocity+20);
                     gate.setPosition(NEUTRAL_POS);
 
@@ -187,6 +198,7 @@ public class redwall extends OpMode {
                     wait(1500);
                     windmill.setPower(0);
                     // Ball #2
+                    velocityCheck(5, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1000);
                     gate.setPosition(NEUTRAL_POS);
@@ -196,6 +208,7 @@ public class redwall extends OpMode {
                     windmill.setPower(0);
                     shooter.setVelocity(shooterVelocity);
                     // Ball #3
+                    velocityCheck(5, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1000);
                     gate.setPosition(NEUTRAL_POS);
@@ -236,25 +249,27 @@ public class redwall extends OpMode {
                     light1.setPosition(0.555);
                     intake.setPower(0);
                     // Ball #1
+                    velocityCheck(5, 1930);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
                     shooter.setVelocity(shooterVelocity+35);
-                    intake.setPower(-1);
                     wait(1500);
                     windmill.setPower(0);
                     // Ball #2
+                    velocityCheck(5, 1935);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
                     shooter.setVelocity(shooterVelocity+15);
-                    wait(3000);
+                    wait(1500);
                     windmill.setPower(0);
                     // Ball #3
+                    velocityCheck(5, 1930);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
