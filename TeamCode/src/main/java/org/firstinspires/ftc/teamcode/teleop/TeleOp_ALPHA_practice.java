@@ -76,6 +76,7 @@ public class TeleOp_ALPHA_practice extends OpMode {
     double INTAKE_BACK = 0.5;
     double WINDMILL_ON = 1;
     double WINDMILL_BACK = -1;
+    double targetLaunchPower = 1925;
 
     public ElapsedTime TeleOpRuntime = new ElapsedTime();
 
@@ -229,6 +230,21 @@ public class TeleOp_ALPHA_practice extends OpMode {
             frontRightMotorSpeed -= right_stick_x;
             backRightMotorSpeed -= right_stick_x;
         }
+
+
+        //  11-15-25 Changes
+        if(gamepad2.dpad_up){
+            targetLaunchPower = 2000;
+        }
+        if(gamepad2.dpad_down){
+            targetLaunchPower = 1825;
+        }
+        if(gamepad2.dpad_right){
+            targetLaunchPower = 1925;
+        }
+        LAUNCH_POWER = targetLaunchPower;
+        telemetry.addLine("Change Launch Power with ps (Default is 1925)");
+        telemetry.addData("Target Launch Power", targetLaunchPower);
 
         launchPower = (gamepad2.right_trigger * 2075);
 

@@ -23,8 +23,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 
 @Autonomous(name = "RedWall", group = "Autonomous")
-@Configurable
-public class redwall extends OpMode {
+public class redWall extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     private Follower follower;

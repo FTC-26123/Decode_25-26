@@ -21,8 +21,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 
-@Autonomous(name = "RedWall", group = "Autonomous")
-@Configurable
+@Autonomous(name = "Blue_Wall", group = "Autonomous")
 public class bluewall extends OpMode {
 
     private TelemetryManager panelsTelemetry;
@@ -40,7 +39,7 @@ public class bluewall extends OpMode {
 
     public Servo light1;
 
-    final int shooterVelocity = 1930;
+    final int shooterVelocity = 1945;
     final float NEUTRAL_POS = 0.35f;
     final float SHOOT_POS = 0.80f;
 
@@ -53,14 +52,6 @@ public class bluewall extends OpMode {
 
     public void velocityCheck(int ms, int velocity) {
         while (shooter.getVelocity()<velocity) {wait(ms);}
-    }
-
-    public static double cc(double x) { // converting coordinates
-        return 72-(x-72);
-    }
-
-    public static double d(double degrees) { //converting degrees
-        return(180-degrees);
     }
 
 
@@ -79,7 +70,7 @@ public class bluewall extends OpMode {
         pathTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(119.353, 127.456, Math.toRadians(42)));
+        follower.setStartingPose(new Pose(23.327, 126.505, Math.toRadians(141)));
 
         paths = new Paths(follower);
 
@@ -125,57 +116,58 @@ public class bluewall extends OpMode {
             Shoot1set = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(cc(119.353), 127.456), new Pose(cc(89.810+3), 98.420+3))
+                            new BezierLine(new Pose(23.551, 126.729), new Pose(52.037, 98.467))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(42)), Math.toRadians(d(45)))
+                    .setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(137))
                     .build();
 
             go2ndset = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(cc(89.810+3), 98.420+3),
-                                    new Pose(cc(83.395), 87.109),
-                                    new Pose(cc( 99.433), 82.382)
+                                    new Pose(52.037, 98.467),
+                                    new Pose(62.355, 86.355),
+                                    new Pose(54.953, 89.720)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(45)), Math.toRadians(d(0)))
+                    .setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(180))
                     .build();
 
             Intake2ndset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(cc(99.433-1), 82.382), new Pose(cc(126.106), 81.876))
+                            new BezierLine(new Pose(54.953, 89.720), new Pose(23.327, 87.925))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(0)), Math.toRadians(d(0)))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
 
             Shoot2ndset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(cc(126.106), 81.876), new Pose(cc((89.810+3)), 98.420+3))
+                            new BezierLine(new Pose(23.327, 87.925), new Pose(50.916, 99.813))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(0)), Math.toRadians(d(42)))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(141))
                     .build();
 
             go3rdset = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(cc(89.810+3), 98.420+3),
-                                    new Pose(cc(86.096), 61.111),
-                                    new Pose(cc(99.939), 57.566)
+                                    new Pose(50.916, 99.813),
+                                    new Pose(61.009, 61.009),
+                                    new Pose(55.402, 64.150)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(42)), Math.toRadians(d(0)))
+                    .setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(180))
                     .build();
+
 
             Intake3rdset = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(cc(99.939+2), 57.566-0), new Pose(cc(125.599), 57.735))
+                            new BezierLine(new Pose(55.402, 64.150), new Pose(19.514, 63.925))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(d(0)), Math.toRadians(d(0)))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
         }
     }
@@ -245,7 +237,7 @@ public class bluewall extends OpMode {
                 if (!follower.isBusy()) {
                     light1.setPosition(0.500);
                     shooter.setVelocity(shooterVelocity+15);
-                    intake.setPower(-0.5);
+                    intake.setPower(-1);
                     windmill.setPower(0.5);
                     follower.followPath(paths.Shoot2ndset);
                     setPathState(5);
