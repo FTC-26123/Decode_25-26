@@ -76,6 +76,7 @@ public class TeleOp_ALPHA_competition extends OpMode {
     double INTAKE_BACK = 0.5;
     double WINDMILL_ON = 1;
     double WINDMILL_BACK = -1;
+    double targetLaunchPower = 1925;
 
     double targetLaunchPower = 1925;
 
@@ -113,7 +114,7 @@ public class TeleOp_ALPHA_competition extends OpMode {
         limelight.start();
 
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "revColorV3");
-        colorSensor.setGain(7);
+        colorSensor.setGain(11);
 
         launchStarted = false;
     }
@@ -138,11 +139,13 @@ public class TeleOp_ALPHA_competition extends OpMode {
         telemetry.addData("Detected Hue", hue);
         telemetry.addData("Detected Color", col);
 
-        if (hue > 90 && hue < 180) {
+        if (hue > 151 && hue < 170) {
             telemetry.addLine("Detected Color: Green");
+//            telemetry.speak("Detected Color, Green");
             light1.setPosition(0.47);
-        } else if (hue > 215 && hue < 255) {
+        } else if (hue > 205 && hue < 225) {
             telemetry.addLine("Detected Color: Purple");
+//            telemetry.speak("Detected Color, Purple");
             light1.setPosition(0.67);
         } else {
             light1.setPosition(ZERO);
@@ -232,21 +235,29 @@ public class TeleOp_ALPHA_competition extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
-        launchPower = (gamepad2.right_trigger * 2075);
 
-        if (launchPower <= LAUNCH_POWER) {
-            launchPower = LAUNCH_POWER;
+        //  11-15-25 Changes
+        if(gamepad2.dpad_up){
+            targetLaunchPower = 2000;
         }
-        if (gamepad2.right_trigger > 0.35) {
-            launchStarted = true;
+        if(gamepad2.dpad_down){
+            targetLaunchPower = 1825;
         }
-        if (launchStarted) {
-            shooter.setVelocity(launchPower);
+        if(gamepad2.dpad_right){
+            targetLaunchPower = 1925;
         }
-        if (gamepad2.right_bumper) {
+        LAUNCH_POWER = targetLaunchPower;
+        telemetry.addLine("Change Launch Power with ps (Default is 1925)");
+        telemetry.addData("Target Launch Power", targetLaunchPower);
+
+        if (gamepad2.right_trigger > 0.5) {
+            shooter.setVelocity(LAUNCH_POWER);
+            windmill.setPower(1);
+        } if (gamepad2.right_bumper) {
             shooter.setVelocity(ZERO);
-            launchStarted = false;
+            windmill.setPower(ZERO);
         }
+
 
 
         if (gamepad2.left_trigger > 0.5) {
@@ -265,10 +276,8 @@ public class TeleOp_ALPHA_competition extends OpMode {
 
         if (gamepad2.x) {
             gate.setPosition(GATE_MOVE_LEFT);
-        } else if (gamepad2.b) {
-            if (shooter.getVelocity() > MIN_LAUNCH_POWER) {
-                gate.setPosition(GATE_MOVE_RIGHT);
-            }
+        } else if (gamepad2.b && shooter.getVelocity() > MIN_LAUNCH_POWER) {
+            gate.setPosition(GATE_MOVE_RIGHT);
         } else {
             gate.setPosition(IDLE);
         }
@@ -289,7 +298,6 @@ public class TeleOp_ALPHA_competition extends OpMode {
         telemetry.addData("Target Launch Power", targetLaunchPower);
 
         telemetry.addData("Runtime:", TeleOpRuntime.seconds());
-
         telemetry.setMsTransmissionInterval(30);
 
         if (TeleOpRuntime.seconds() >= 120.25) {
