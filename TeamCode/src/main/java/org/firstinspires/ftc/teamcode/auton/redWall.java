@@ -46,13 +46,20 @@ public class redWall extends OpMode {
 
     ElapsedTime timer = new ElapsedTime();
 
+    ElapsedTime velTim = new ElapsedTime();
+
     public void wait(int milliseconds) {
         timer.reset();
         while (true) {if (timer.milliseconds() >= milliseconds) break;}
     }
 
     public void velocityCheck(int ms, int velocity) {
-        while (shooter.getVelocity()<velocity) {wait(ms);}
+        velTim.reset();
+        while (shooter.getVelocity()<velocity) {
+            if (ms > velTim.milliseconds()) {
+                break;
+            }
+        }
     }
 
     @Override
@@ -154,7 +161,7 @@ public class redWall extends OpMode {
                     .addPath(
                             new BezierCurve(
                                     new Pose(89.810+3, 98.420+3),
-                                    new Pose(86.096, 61.111),
+                                    new Pose(86.096-6, 61.111-1),
                                     new Pose(99.939, 57.566)
                             )
                     )
@@ -187,7 +194,7 @@ public class redWall extends OpMode {
                 if(!follower.isBusy()) {
                     light1.setPosition(0.333);
                     // Ball #1
-                    velocityCheck(5, 1920);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     shooter.setVelocity(shooterVelocity+20);
@@ -197,7 +204,7 @@ public class redWall extends OpMode {
                     wait(1500);
                     windmill.setPower(0);
                     // Ball #2
-                    velocityCheck(5, 1920);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1000);
                     gate.setPosition(NEUTRAL_POS);
@@ -207,7 +214,8 @@ public class redWall extends OpMode {
                     windmill.setPower(0);
                     shooter.setVelocity(shooterVelocity);
                     // Ball #3
-                    velocityCheck(5, 1920);
+                    wait(500);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1000);
                     gate.setPosition(NEUTRAL_POS);
@@ -248,27 +256,27 @@ public class redWall extends OpMode {
                     light1.setPosition(0.555);
                     intake.setPower(0);
                     // Ball #1
-                    velocityCheck(5, 1930);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
-                    windmill.setPower(0.75);
-                    shooter.setVelocity(shooterVelocity+35);
+                    windmill.setPower(0.7);
+                    shooter.setVelocity(shooterVelocity);
                     wait(1500);
                     windmill.setPower(0);
                     // Ball #2
-                    velocityCheck(5, 1935);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
 
                     windmill.setPower(0.75);
-                    shooter.setVelocity(shooterVelocity+15);
+                    shooter.setVelocity(shooterVelocity);
                     wait(1500);
                     windmill.setPower(0);
                     // Ball #3
-                    velocityCheck(5, 1930);
+                    velocityCheck(3000, 1920);
                     gate.setPosition(SHOOT_POS);
                     wait(1500);
                     gate.setPosition(NEUTRAL_POS);
