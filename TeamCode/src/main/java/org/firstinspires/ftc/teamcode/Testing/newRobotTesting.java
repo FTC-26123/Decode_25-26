@@ -14,13 +14,14 @@ public class newRobotTesting extends OpMode {
     public DcMotor backLeftMotor;
     public DcMotor backRightMotor;
     public DcMotorEx launcherRight;
-
     public DcMotor index;
     public DcMotor intake;
-
     public DcMotorEx launcherLeft;
+    long dualVelocity = 2250;
+
     @Override
     public void init() {
+
         frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
         backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
@@ -52,13 +53,13 @@ public class newRobotTesting extends OpMode {
         telemetry.addLine("Gamepad2.y -> left launcher");
         telemetry.addData("Launch Power (left)", launcherLeft.getVelocity());
         if (gamepad2.y) {
-            launcherLeft.setVelocity(2250);
+            launcherLeft.setVelocity(dualVelocity);
         }
 
         telemetry.addLine("Gamepad2.x -> right launcher");
         telemetry.addData("Launch Power (right)", launcherRight.getVelocity());
         if (gamepad2.x) {
-            launcherRight.setVelocity(2250);
+            launcherRight.setVelocity(dualVelocity);
         }
 
         telemetry.addLine("Gamepad2.ps -> all off");
@@ -71,23 +72,29 @@ public class newRobotTesting extends OpMode {
 
         telemetry.addLine("Gamepad2.start -> reverse motor");
         if (gamepad2.start) {
-            launcherRight.setDirection(DcMotorSimple.Direction.FORWARD);;
-            launcherLeft.setDirection(DcMotorSimple.Direction.REVERSE);
             index.setDirection(DcMotorSimple.Direction.FORWARD);
             intake.setDirection(DcMotorSimple.Direction.FORWARD);
         }
 
         telemetry.addLine("Gamepad2.back -> forward motor");
         if (gamepad2.back) {
-            launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);;
-            launcherLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             index.setDirection(DcMotorSimple.Direction.REVERSE);
             intake.setDirection(DcMotorSimple.Direction.REVERSE);
         }
 
+        telemetry.addLine("Gamepad2.dpad_up -> increase velocity by 10");
+        if (gamepad2.dpad_up) {
+            dualVelocity = dualVelocity + 10;
+        }
+
+        telemetry.addLine("Gamepad2.dpad_down -> decrease velocity by 10");
+        if (gamepad2.dpad_down) {
+            dualVelocity = dualVelocity - 10;
+        }
+
+        telemetry.addData("Target Velocity", dualVelocity);
+
         telemetry.update();
 
     }
-
-
 }
