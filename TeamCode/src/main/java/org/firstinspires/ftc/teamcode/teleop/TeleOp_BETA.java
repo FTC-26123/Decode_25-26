@@ -5,9 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 @TeleOp(name = "TeleOp_Beta")
-public class TeleOp_BETA_practice extends OpMode {
+public class TeleOp_BETA extends OpMode {
 
     public final float MOTOR_MULTIPLIER_PERCENTAGE_CAP = 0.55F;
     public DcMotor frontLeftMotor;
@@ -24,6 +27,14 @@ public class TeleOp_BETA_practice extends OpMode {
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
     long dualVelocity = 2250;
+
+    boolean shooterIsBusy = false;
+
+    final double motorStallThreshold = 5.5; // amps
+
+    public void checkForCompEnd(boolean check) {
+        if (check) {requestOpModeStop();}
+    }
 
     public void update() {
 //     Robot Motor Power Limits
@@ -46,8 +57,9 @@ public class TeleOp_BETA_practice extends OpMode {
         launcherLeft = hardwareMap.get(DcMotorEx.class, "launcherLeft");
 
         launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);;
+        launcherLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         index.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
 
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -95,14 +107,12 @@ public class TeleOp_BETA_practice extends OpMode {
             backRightMotorSpeed -= right_stick_x;
         }
 
-        if (gamepad2.a) {
-            intake.setPower(1);
+        if (gamepad2.a && !gamepad1.start && !gamepad2.start) {
             index.setPower(1);
-        } else if (gamepad2.b) {
-            intake.setPower(-1);
+        } else if (gamepad2.b && !gamepad1.start && !gamepad2.start) {
             index.setPower(-1);
+            intake.setPower(-1);
         } else if (!gamepad2.a && !gamepad2.b) {
-            intake.setPower(0);
             index.setPower(0);
         }
 
@@ -112,9 +122,28 @@ public class TeleOp_BETA_practice extends OpMode {
         if (gamepad2.left_trigger > 0.4) {
             launcherLeft.setVelocity(dualVelocity);
             launcherRight.setVelocity(dualVelocity);
+            shooterIsBusy = true;
         } if (gamepad2.left_bumper) {
             launcherLeft.setVelocity(0);
             launcherRight.setVelocity(0);
+            shooterIsBusy = false;
+        }
+
+        telemetry.addData("Left Launcher Amps", launcherLeft.getCurrent(CurrentUnit.AMPS));
+        telemetry.addData("Right Launcher Amps", launcherRight.getCurrent(CurrentUnit.AMPS));
+
+        if (shooterIsBusy) {
+            if (launcherLeft.getCurrent(CurrentUnit.AMPS) > motorStallThreshold) {
+                telemetry.addLine("Left Launcher Stalled!");
+            } if (launcherRight.getCurrent(CurrentUnit.AMPS) > motorStallThreshold) {
+                telemetry.addLine("Right Launcher Stalled!");
+            }
+        }
+
+        if (gamepad2.right_trigger > 0.4) {
+            intake.setPower(1);
+        } if (gamepad2.right_bumper) {
+            intake.setPower(0);
         }
 
         telemetry.addLine("Gamepad2.dpad_up -> increase velocity by 10");
@@ -124,13 +153,13 @@ public class TeleOp_BETA_practice extends OpMode {
 
         telemetry.addLine("Gamepad2.dpad_down -> decrease velocity by 10");
         if (gamepad2.dpad_down) {
-            dualVelocity-= 10;
+            dualVelocity -= 10;
         }
+
+        checkForCompEnd(false);
 
         telemetry.update();
         update();
-
-
 
     }
 }

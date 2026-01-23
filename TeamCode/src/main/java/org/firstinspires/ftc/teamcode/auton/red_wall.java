@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.auton;
 import static java.lang.Thread.sleep;
 
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -13,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,9 +21,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-
+@Disabled
 @Autonomous(name = "RedWall", group = "Autonomous")
-public class redWall extends OpMode {
+public class red_wall extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     private Follower follower;
@@ -39,7 +39,7 @@ public class redWall extends OpMode {
     public Servo gate;
 
     public Servo light1;
-    
+
     final int shooterVelocity = 1930;
     final float NEUTRAL_POS = 0.35f;
     final float SHOOT_POS = 0.80f;

@@ -32,9 +32,15 @@ public class launcherPIDTesting extends OpMode {
         index = hardwareMap.get(DcMotor.class, "windmill");
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);;
+        launcherLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         index.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // PID tuned for high-speed RS-555 motors
         leftPID = new PID(0.0005, 0.00001, 0.00005);   // Master PID

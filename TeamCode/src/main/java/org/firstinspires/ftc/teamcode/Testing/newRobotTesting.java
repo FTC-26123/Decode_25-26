@@ -32,9 +32,14 @@ public class newRobotTesting extends OpMode {
         launcherLeft = hardwareMap.get(DcMotorEx.class, "launcherLeft");
 
         launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);;
+        launcherLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         index.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     @Override
