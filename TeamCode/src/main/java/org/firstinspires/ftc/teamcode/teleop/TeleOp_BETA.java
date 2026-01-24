@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -22,15 +23,23 @@ public class TeleOp_BETA extends OpMode {
     public DcMotor intake;
     public DcMotorEx launcherLeft;
 
+    public Servo light;
+
     public float frontLeftMotorSpeed = 0;
     public float frontRightMotorSpeed = 0;
     public float backLeftMotorSpeed = 0;
     public float backRightMotorSpeed = 0;
     long dualVelocity = 2250;
 
-    boolean shooterIsBusy = false;
+    boolean gamepadBWasPressed = false;
 
-    final double motorStallThreshold = 5.5; // amps
+    boolean shooterIsBusy = false;
+    final double motorStallThreshold = 8; // amps
+    boolean shooterIsStalled = false;
+    boolean indexRunByInput = false;
+    public ElapsedTime stallTimer = new ElapsedTime();
+
+    public ElapsedTime lightTimer = new ElapsedTime();
 
     public void checkForCompEnd(boolean check) {
         if (check) {requestOpModeStop();}
@@ -55,6 +64,8 @@ public class TeleOp_BETA extends OpMode {
         index = hardwareMap.get(DcMotor.class, "windmill");
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcherLeft = hardwareMap.get(DcMotorEx.class, "launcherLeft");
+
+        light = hardwareMap.get(Servo.class, "light");
 
         launcherRight.setDirection(DcMotorSimple.Direction.REVERSE);;
         launcherLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -109,11 +120,17 @@ public class TeleOp_BETA extends OpMode {
 
         if (gamepad2.a && !gamepad1.start && !gamepad2.start) {
             index.setPower(1);
+            indexRunByInput = true;
         } else if (gamepad2.b && !gamepad1.start && !gamepad2.start) {
             index.setPower(-1);
             intake.setPower(-1);
+            indexRunByInput = true;
+            gamepadBWasPressed = true;
         } else if (!gamepad2.a && !gamepad2.b) {
             index.setPower(0);
+        } if (!gamepad2.b && gamepadBWasPressed) {
+            intake.setPower(0);
+            gamepadBWasPressed = false;
         }
 
         telemetry.addData("Launcher Left Velocity", launcherLeft.getVelocity());
@@ -127,17 +144,46 @@ public class TeleOp_BETA extends OpMode {
             launcherLeft.setVelocity(0);
             launcherRight.setVelocity(0);
             shooterIsBusy = false;
+        } if (shooterIsBusy && launcherRight.getVelocity() > (dualVelocity - 45) && launcherLeft.getVelocity() > (dualVelocity - 45)) {
+            light.setPosition(0.47);
+        } else if (shooterIsBusy && launcherRight.getVelocity() < (dualVelocity - 45) && launcherLeft.getVelocity() < (dualVelocity - 45)) {
+            light.setPosition(0.29);
+        } else if (!shooterIsBusy) {
+            light.setPosition(0);
+        }
+        if (shooterIsBusy && Math.abs(launcherLeft.getVelocity() - launcherRight.getVelocity()) > 50) {
+            lightTimer.reset();
+            if (lightTimer.milliseconds() > 300 && lightTimer.milliseconds() < 599) {
+                light.setPosition(0.6);
+            } if (lightTimer.milliseconds() > 600) {
+                light.setPosition(0.8);
+                lightTimer.reset();
+            }
         }
 
         telemetry.addData("Left Launcher Amps", launcherLeft.getCurrent(CurrentUnit.AMPS));
         telemetry.addData("Right Launcher Amps", launcherRight.getCurrent(CurrentUnit.AMPS));
 
-        if (shooterIsBusy) {
+        if (shooterIsBusy) { // checking for stall motor
             if (launcherLeft.getCurrent(CurrentUnit.AMPS) > motorStallThreshold) {
                 telemetry.addLine("Left Launcher Stalled!");
+                shooterIsStalled = true;
             } if (launcherRight.getCurrent(CurrentUnit.AMPS) > motorStallThreshold) {
                 telemetry.addLine("Right Launcher Stalled!");
+                shooterIsStalled = true;
+            } if (launcherLeft.getCurrent(CurrentUnit.AMPS) < motorStallThreshold) {
+                shooterIsStalled = false;
+            } if (launcherRight.getCurrent(CurrentUnit.AMPS) < motorStallThreshold) {
+                shooterIsStalled = false;
             }
+        }
+
+        if (shooterIsStalled) {
+            stallTimer.reset();
+            indexRunByInput = false;
+            index.setPower(-1);
+        } if (!shooterIsStalled && !indexRunByInput) {
+            index.setPower(0);
         }
 
         if (gamepad2.right_trigger > 0.4) {
