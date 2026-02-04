@@ -14,8 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-@TeleOp(name = "TeleOp_Beta")
-public class TeleOp_BETA extends OpMode {
+@TeleOp(name = "TeleOp_Beta_1controller")
+public class TeleOp_BETA_1controller extends OpMode {
 
     public final float MOTOR_MULTIPLIER_PERCENTAGE_CAP = 0.55F;
     public DcMotor frontLeftMotor;
@@ -38,7 +38,9 @@ public class TeleOp_BETA extends OpMode {
     long dualVelocity = 1200;
     boolean gamepadBWasPressed = false;
     boolean shooterIsBusy = false;
+
     boolean intaking = false;
+
     public ElapsedTime lightTimer = new ElapsedTime();
 
     public void checkForCompEnd(boolean check) {
@@ -89,9 +91,9 @@ public class TeleOp_BETA extends OpMode {
         backLeftMotorSpeed = 0;
         backRightMotorSpeed = 0;
 
-        float left_stick_x = gamepad1.left_stick_x;
-        float left_stick_y = gamepad1.left_stick_y;
-        float right_stick_x = gamepad1.right_stick_x;
+        float left_stick_x = gamepad2.left_stick_x;
+        float left_stick_y = gamepad2.left_stick_y;
+        float right_stick_x = gamepad2.right_stick_x;
 
 //        Forward/Backward Movement
         if (left_stick_y != 0) {
@@ -120,7 +122,6 @@ public class TeleOp_BETA extends OpMode {
         if (gamepad2.a && !gamepad2.start && !gamepad1.start) {
             index.setPower(1);
             gate.setPower(1);
-            intaking = true;
         } else if (gamepad2.b && !gamepad2.start && !gamepad1.start) {
             index.setPower(-1);
             intake.setPower(-1);
@@ -129,7 +130,6 @@ public class TeleOp_BETA extends OpMode {
         } else if (!gamepad2.a && !gamepad2.b) {
             index.setPower(0);
             gate.setPower(0);
-            intaking = false;
         } if (!gamepad2.b && gamepadBWasPressed) {
             if (!intaking) intake.setPower(0);
             else intake.setPower(1);
@@ -150,34 +150,32 @@ public class TeleOp_BETA extends OpMode {
             shooterIsBusy = false;
         } if (shooterIsBusy && launcher.getVelocity() > (dualVelocity - 45)) {
             light.setPosition(0.47);
+            telemetry.addLine("Correct Shooter Power");
         } else if (shooterIsBusy && launcher.getVelocity() < (dualVelocity - 45)) {
             light.setPosition(0.29);
+            telemetry.addLine("Low Shooter Power");
+        } else if (shooterIsBusy && launcher.getVelocity() > (dualVelocity + 45)) {
+            light.setPosition(0.8);
+            telemetry.addLine("High Shooter Power");
         } else if (!shooterIsBusy) {
             light.setPosition(0);
         }
-        if (shooterIsBusy && launcher.getVelocity() > 50) {
-            lightTimer.reset();
-            if (lightTimer.milliseconds() > 300 && lightTimer.milliseconds() < 599) {
-                light.setPosition(0.6);
-            } if (lightTimer.milliseconds() > 600) {
-                light.setPosition(0.8);
-                lightTimer.reset();
-            }
-        }
 
-        if (gamepad2.right_trigger > 0.4) {
+        if (gamepad2.right_trigger > 0.4 && !gamepad2.b) {
             intake.setPower(1);
+            intaking = true;
         } if (gamepad2.right_bumper) {
             intake.setPower(0);
+            intaking = false;
         }
 
-        telemetry.addLine("Gamepad2.dpad_up -> Velocity 1460");
+        telemetry.addLine("Gamepad2.dpad_up -> Velocity 1,460");
         if (gamepad2.dpad_up) {
             dualVelocity = 1460;
             if (shooterIsBusy) launcher.setVelocity(dualVelocity);
         }
 
-        telemetry.addLine("Gamepad2.dpad_down -> Velocity 1200");
+        telemetry.addLine("Gamepad2.dpad_down -> Velocity 1,200");
         if (gamepad2.dpad_down) {
             dualVelocity = 1200;
             if (shooterIsBusy) launcher.setVelocity(dualVelocity);
@@ -192,4 +190,3 @@ public class TeleOp_BETA extends OpMode {
 
     }
 }
-
