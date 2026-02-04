@@ -142,6 +142,7 @@ public class TeleOp_BETA_1controller extends OpMode {
         telemetry.addData("Target Launcher Velocity", dualVelocity);
         telemetry.addLine("Launcher Velocity: " + decimalFormat.format(launcher.getVelocity()) + " ... Launcher RPM: " + decimalFormat.format(launcher.getVelocity() / 28 * 60) + "RPM");
 
+
         if (gamepad2.left_trigger > 0.4) {
             launcher.setVelocity(dualVelocity);
             shooterIsBusy = true;

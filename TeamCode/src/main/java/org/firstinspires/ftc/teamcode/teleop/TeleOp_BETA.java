@@ -150,19 +150,15 @@ public class TeleOp_BETA extends OpMode {
             shooterIsBusy = false;
         } if (shooterIsBusy && launcher.getVelocity() > (dualVelocity - 45)) {
             light.setPosition(0.47);
+            telemetry.addLine("Correct Shooter Power");
         } else if (shooterIsBusy && launcher.getVelocity() < (dualVelocity - 45)) {
             light.setPosition(0.29);
+            telemetry.addLine("Low Shooter Power");
+        } else if (shooterIsBusy && launcher.getVelocity() > (dualVelocity + 45)) {
+            light.setPosition(0.8);
+            telemetry.addLine("High Shooter Power");
         } else if (!shooterIsBusy) {
             light.setPosition(0);
-        }
-        if (shooterIsBusy && launcher.getVelocity() > 50) {
-            lightTimer.reset();
-            if (lightTimer.milliseconds() > 300 && lightTimer.milliseconds() < 599) {
-                light.setPosition(0.6);
-            } if (lightTimer.milliseconds() > 600) {
-                light.setPosition(0.8);
-                lightTimer.reset();
-            }
         }
 
         if (gamepad2.right_trigger > 0.4) {
