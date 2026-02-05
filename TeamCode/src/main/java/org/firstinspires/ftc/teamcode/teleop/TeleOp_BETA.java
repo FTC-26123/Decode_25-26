@@ -28,7 +28,7 @@ public class TeleOp_BETA extends OpMode {
 
     public Servo light;
 
-    public CRServo gate;
+    public Servo gate;
 
     public float frontLeftMotorSpeed = 0;
     public float frontRightMotorSpeed = 0;
@@ -66,7 +66,7 @@ public class TeleOp_BETA extends OpMode {
 
         light = hardwareMap.get(Servo.class, "light");
 
-        gate = hardwareMap.get(CRServo.class, "gate");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         launcher.setDirection(DcMotorSimple.Direction.REVERSE);
         index.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -119,16 +119,16 @@ public class TeleOp_BETA extends OpMode {
 
         if (gamepad2.a && !gamepad2.start && !gamepad1.start) {
             index.setPower(1);
-            gate.setPower(1);
+            gate.setPosition(0.27);
             intaking = true;
         } else if (gamepad2.b && !gamepad2.start && !gamepad1.start) {
             index.setPower(-1);
             intake.setPower(-1);
-            gate.setPower(-1);
+            gate.setPosition(0.27);
             gamepadBWasPressed = true;
         } else if (!gamepad2.a && !gamepad2.b) {
             index.setPower(0);
-            gate.setPower(0);
+            gate.setPosition(0.50);
             intaking = false;
         } if (!gamepad2.b && gamepadBWasPressed) {
             if (!intaking) intake.setPower(0);

@@ -18,13 +18,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-4)
-            .strafePodX(-5)
+            .forwardPodY(2)
+            .strafePodX(-7)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(com.qualcomm.hardware.gobilda.GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(com.qualcomm.hardware.gobilda.GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -33,18 +33,16 @@ public class Constants {
             .rightRearMotorName("backRightMotor")
             .leftRearMotorName("backLeftMotor")
             .leftFrontMotorName("frontLeftMotor")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(64.40372554379923)
-            .yVelocity(53.20452015794168);
-
-
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .xVelocity(67.02656807486467)
+            .yVelocity(57.0133215235913);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(13.6077711)
-            .forwardZeroPowerAcceleration(-19.934145162335412)
-            .lateralZeroPowerAcceleration(-62.76423771132798)
+            .mass(13.6078)
+            .forwardZeroPowerAcceleration(-28.54539198913528)
+            .lateralZeroPowerAcceleration(-68.74882630326294)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.1,0,0,0))
             .headingPIDFCoefficients(new PIDFCoefficients(1.7,0,0,0.01))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.00001, 0.6, 0.01))
