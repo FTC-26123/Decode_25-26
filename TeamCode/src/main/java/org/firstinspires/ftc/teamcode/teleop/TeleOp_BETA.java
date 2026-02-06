@@ -119,16 +119,13 @@ public class TeleOp_BETA extends OpMode {
 
         if (gamepad2.a && !gamepad2.start && !gamepad1.start) {
             index.setPower(1);
-            gate.setPosition(0.27);
             intaking = true;
         } else if (gamepad2.b && !gamepad2.start && !gamepad1.start) {
             index.setPower(-1);
             intake.setPower(-1);
-            gate.setPosition(0.27);
             gamepadBWasPressed = true;
         } else if (!gamepad2.a && !gamepad2.b) {
             index.setPower(0);
-            gate.setPosition(0.50);
             intaking = false;
         } if (!gamepad2.b && gamepadBWasPressed) {
             if (!intaking) intake.setPower(0);
@@ -166,6 +163,9 @@ public class TeleOp_BETA extends OpMode {
         } if (gamepad2.right_bumper) {
             intake.setPower(0);
         }
+
+        if (gamepad2.x) gate.setPosition(0.27);
+        else if (gamepad2.y) gate.setPosition(0.50);
 
         telemetry.addLine("Gamepad2.dpad_up -> Velocity 1460");
         if (gamepad2.dpad_up) {
