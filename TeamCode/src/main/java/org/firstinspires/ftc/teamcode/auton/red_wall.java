@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.auton;
 import static java.lang.Thread.sleep;
 
 
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -21,70 +20,57 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+
 @Disabled
-@Autonomous(name = "RedWall", group = "Autonomous")
+@Autonomous(name = "adsandjaljsadpiio", group = "Autonomous")
 public class red_wall extends OpMode {
 
     private TelemetryManager panelsTelemetry;
     private Follower follower;
     private int pathState;
-
     private Timer pathTimer;
     private Paths paths;
-
-    public DcMotorEx shooter;
-
-    public DcMotor windmill;
+    public DcMotorEx launcher;
+    public DcMotor index;
     public DcMotor intake;
-    public Servo gate;
-
     public Servo light1;
-
-    final int shooterVelocity = 1930;
-    final float NEUTRAL_POS = 0.35f;
-    final float SHOOT_POS = 0.80f;
-
+    public Servo gate;
     ElapsedTime timer = new ElapsedTime();
-
-    ElapsedTime velTim = new ElapsedTime();
 
     public void wait(int milliseconds) {
         timer.reset();
-        while (true) {if (timer.milliseconds() >= milliseconds) break;}
+        while (true) {
+            if (timer.milliseconds() > milliseconds) {break;}
+        }
     }
 
-    public void velocityCheck(int ms, int velocity) {
-        velTim.reset();
-        while (shooter.getVelocity()<velocity) {
-            if (ms > velTim.milliseconds()) {
-                break;
-            }
-        }
+    public void velCheck(int minVelocity) {
+        while(launcher.getVelocity() < minVelocity) wait(10);
     }
 
     @Override
     public void init() {
 
-        shooter = hardwareMap.get(DcMotorEx.class, "launcher");
-        windmill = hardwareMap.get(DcMotor.class, "windmill");
+        light1 = hardwareMap.get(Servo.class, "light");
+        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        index = hardwareMap.get(DcMotor.class, "windmill");
         intake = hardwareMap.get(DcMotor.class, "intake");
+
         gate = hardwareMap.get(Servo.class, "gate");
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        light1 = hardwareMap.get(Servo.class, "light1");
+        launcher.setDirection(DcMotorSimple.Direction.REVERSE);;
+        index.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
         pathTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(119.353, 127.456, Math.toRadians(42)));
+        follower.setStartingPose(new Pose(80.822, 8.340, Math.toRadians(90)));
 
         paths = new Paths(follower);
 
-        panelsTelemetry.debug("Status", "Initialized");
-        panelsTelemetry.update(telemetry);
 
-        telemetry.setMsTransmissionInterval(20);
 
     }
 
@@ -103,261 +89,259 @@ public class red_wall extends OpMode {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        telemetry.addData("Shooter Velocity", shooter.getVelocity());
-        panelsTelemetry.debug("Path State", pathState);
-        panelsTelemetry.debug("X", follower.getPose().getX());
-        panelsTelemetry.debug("Y", follower.getPose().getY());
-        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.update(telemetry);
 
-
-
-        telemetry.update();
     }
 
     /** ---------------- PATH DEFINITIONS ---------------- **/
+
     public static class Paths {
-        public PathChain Shoot1set, go2ndset, Intake2ndset, Shoot2ndset, go3rdset, Intake3rdset;
+        public PathChain shoot1st;
+        public PathChain intake2nd;
+        public PathChain go2ndSet;
+        public PathChain shoot2nd;
+        public PathChain intake3rd;
+        public PathChain go3rdSet;
+        public PathChain shoot3rd;
+        public PathChain wallIntake1;
 
         public Paths(Follower follower) {
-            Shoot1set = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(119.353, 127.456), new Pose(89.810+3, 98.420+3))
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(45))
-                    .build();
+            shoot1st = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(80.822, 8.340),
 
-            go2ndset = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierCurve(
-                                    new Pose(89.810+3, 98.420+3),
-                                    new Pose(83.395, 87.109),
-                                    new Pose(99.433, 82.382)
+                                    new Pose(82.522, 16.449)
                             )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(64))
+
                     .build();
 
-            Intake2ndset = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(99.433-1, 82.382), new Pose(126.106, 81.876))
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                    .build();
-
-            Shoot2ndset = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(126.106, 81.876), new Pose(89.810+3, 98.420+3))
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(42))
-                    .build();
-
-            go3rdset = follower
-                    .pathBuilder()
-                    .addPath(
+            intake2nd = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(89.810+3, 98.420+3),
-                                    new Pose(86.096-6, 61.111-1),
-                                    new Pose(99.939, 57.566)
+                                    new Pose(82.522, 16.449),
+                                    new Pose(96.321, 32.661),
+                                    new Pose(81.081, 35.126),
+                                    new Pose(98.050, 35.532)
                             )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(0))
+
                     .build();
 
-            Intake3rdset = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(99.939+2, 57.566-0), new Pose(125.599, 57.735))
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+            go2ndSet = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(98.050, 35.532),
+
+                                    new Pose(129.984, 35.426)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+
+                    .build();
+
+            shoot2nd = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(129.984, 35.426),
+
+                                    new Pose(82.904, 16.490)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(64))
+
+                    .build();
+
+            intake3rd = follower.pathBuilder().addPath(
+                            new BezierCurve(
+                                    new Pose(82.904, 16.490),
+                                    new Pose(75.498, 61.900),
+                                    new Pose(94.233, 59.407)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(0))
+
+                    .build();
+
+            go3rdSet = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(94.233, 59.407),
+
+                                    new Pose(133.742, 59.201)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+
+                    .build();
+
+            shoot3rd = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(133.742, 59.201),
+
+                                    new Pose(82.635, 16.662)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(64))
+
+                    .build();
+
+            wallIntake1 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(82.635, 16.662),
+
+                                    new Pose(102.087, 43.797)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(64))
+
                     .build();
         }
     }
+
 
     /** ---------------- STATE MACHINE ---------------- **/
     public void autonomousPathUpdate() throws InterruptedException {
         switch (pathState) {
 
-            case 0: // go to shooting position
-                light1.setPosition(0.29);
-                shooter.setVelocity(shooterVelocity);
-                follower.followPath(paths.Shoot1set);
-                setPathState(1);
-
-
-                break;
-            case 1: //shoot 1st set
+            case 0:
                 if(!follower.isBusy()) {
-                    light1.setPosition(0.333);
-                    // Ball #1
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1500);
-                    shooter.setVelocity(shooterVelocity+20);
-                    gate.setPosition(NEUTRAL_POS);
 
-                    windmill.setPower(0.75);
-                    wait(1500);
-                    windmill.setPower(0);
-                    // Ball #2
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1000);
-                    gate.setPosition(NEUTRAL_POS);
-
-                    windmill.setPower(0.75);
-                    wait(1250);
-                    windmill.setPower(0);
-                    shooter.setVelocity(shooterVelocity);
-                    // Ball #3
-                    wait(500);
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1000);
-                    gate.setPosition(NEUTRAL_POS);
-                    setPathState(2);
+                    launcher.setVelocity(1430);
+                    intake.setPower(0.7);
+                    follower.followPath(paths.shoot1st);
+                    setPathState(1);
                 }
                 break;
-            case 2: // get ready to intake
+
+            case 1:
+                if(!follower.isBusy()) {
+
+                    intake.setPower(0.8);
+                    gate.setPosition(0.27);
+
+                    wait(1000);
+
+                    while (launcher.getVelocity() < 1400) wait(10);
+                    index.setPower(0.7);
+//                    wait(1000);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+//                    wait(1000);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+//                    wait(1000);
+                    index.setPower(0);
+
+                    gate.setPosition(0.50);
+                    setPathState(2);
+
+                }
+                break;
+
+            case 2:
+                if(!follower.isBusy()) {
+                    intake.setPower(1);
+                    index.setPower(0.5);
+                    follower.followPath(paths.intake2nd, 1.00, false);
+                    launcher.setVelocity(1430);
+                    setPathState(100);
+                }
+                break;
+
+            case 100:
                 if (!follower.isBusy()) {
-                    light1.setPosition(0.388);
-                    intake.setPower(-1);
-                    windmill.setPower(1.0);
-                    shooter.setVelocity(1200);
-                    follower.followPath(paths.go2ndset, 0.8, false);
+                    follower.followPath(paths.go2ndSet, 0.325, false);
                     setPathState(3);
                 }
                 break;
 
-            case 3: //intake
-                if (!follower.isBusy()) {
-                    light1.setPosition(0.444);
-                    follower.followPath(paths.Intake2ndset, 0.25, true);
+            case 3:
+                if(!follower.isBusy()) {
+                    intake.setPower(0.5);
+                    index.setPower(0);
+                    follower.followPath(paths.shoot2nd);
                     setPathState(4);
                 }
+                break;
 
             case 4:
-                if (!follower.isBusy()) {
-                    light1.setPosition(0.500);
-                    shooter.setVelocity(shooterVelocity+15);
-                    intake.setPower(-0.5);
-                    windmill.setPower(0.5);
-                    follower.followPath(paths.Shoot2ndset);
+                if(!follower.isBusy()) {
+
+                    gate.setPosition(0.27);
+                    velCheck(1400);
+                    index.setPower(0.7);
+                    wait(1500);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+                    wait(1000);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+//                    wait(1000);
+                    index.setPower(0);
+                    gate.setPosition(0.50);
+
                     setPathState(5);
                 }
                 break;
 
+
             case 5:
+                if(!follower.isBusy()) {
+                    intake.setPower(1);
+                    index.setPower(0.5);
+                    follower.followPath(paths.intake3rd,1.00,false);
+                    setPathState(101);
+                }
+                break;
+
+            case 101:
                 if (!follower.isBusy()) {
-                    light1.setPosition(0.555);
-                    intake.setPower(0);
-                    // Ball #1
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1500);
-                    gate.setPosition(NEUTRAL_POS);
-
-                    windmill.setPower(0.7);
-                    shooter.setVelocity(shooterVelocity);
-                    wait(1500);
-                    windmill.setPower(0);
-                    // Ball #2
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1500);
-                    gate.setPosition(NEUTRAL_POS);
-
-                    windmill.setPower(0.75);
-                    shooter.setVelocity(shooterVelocity);
-                    wait(1500);
-                    windmill.setPower(0);
-                    // Ball #3
-                    velocityCheck(3000, 1920);
-                    gate.setPosition(SHOOT_POS);
-                    wait(1500);
-                    gate.setPosition(NEUTRAL_POS);
+                    follower.followPath(paths.go3rdSet, 0.325, false);
                     setPathState(6);
                 }
                 break;
 
             case 6:
-                if (!follower.isBusy()) {
-                    light1.setPosition(0.611);
-                    shooter.setVelocity(0);
-                    intake.setPower(1); // outtake if ball is stuck
-                    windmill.setPower(-1); // outtake if ball is stuck
-                    follower.followPath(paths.go3rdset, 0.8, false);
+                if(!follower.isBusy()) {
+                    intake.setPower(0.5);
+                    index.setPower(0);
+                    follower.followPath(paths.shoot3rd);
                     setPathState(7);
                 }
                 break;
 
             case 7:
-                if (!follower.isBusy()) {
-                    light1.setPosition(0.667);
-                    intake.setPower(-1); //intake on
-                    windmill.setPower(1); //intake on
-                    follower.followPath(paths.Intake3rdset, 0.25, true);
-                    wait(1000);
-                    setPathState(-1); //stop
+                if(!follower.isBusy()) {
+
+                    gate.setPosition(0.27);
+                    velCheck(1400);
+                    index.setPower(0.7);
+//                    wait(1000);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+//                    wait(1000);
+//                    index.setPower(0);
+
+                    velCheck(1400);
+//                    index.setPower(0.7);
+//                    wait(1000);
+                    index.setPower(0);
+                    gate.setPosition(0.50);
+
+                    setPathState(8);
                 }
+                break;
 
+            case 8:
+                if(!follower.isBusy()) {
+                    launcher.setVelocity(0);
+                    index.setPower(0);
+                    intake.setPower(0);
+                    follower.followPath(paths.wallIntake1, 1.00, true);
+                    setPathState(-1);
+                }
+                break;
 
-
-//            case 8:
-//                if (!follower.isBusy()) {
-//                    light1.setPosition(0.611);
-//                    shooter.setVelocity(1900);
-//                    intake.setPower(0);
-//                    windmill.setPower(0);
-//                    follower.followPath(paths.Shoot3rdset);
-//                    setPathState(7);
-//                }
-//                break;
-//
-//            case 7:
-//                if (!follower.isBusy()) {
-//                    light1.setPosition(0.667);
-//                    // Ball #1
-//                    gate.setPosition(SHOOT_POS);
-//                    wait(1500);
-//                    gate.setPosition(NEUTRAL_POS);
-//
-//                    windmill.setPower(0.75);
-//                    wait(1500);
-//                    windmill.setPower(0);
-//                    // Ball #2
-//                    gate.setPosition(SHOOT_POS);
-//                    wait(1500);
-//                    gate.setPosition(NEUTRAL_POS);
-//
-//                    windmill.setPower(0.75);
-//                    wait(1500);
-//                    windmill.setPower(0);
-//                    // Ball #3
-//                    gate.setPosition(SHOOT_POS);
-//                    wait(1500);
-//                    gate.setPosition(NEUTRAL_POS);
-//                    intake.setPower(-0.8);
-//                    windmill.setPower(0.75);
-//                    wait(500);
-//                    setPathState(8);
-//                }
-//                break;
-//
-//            case 8:
-//                if (!follower.isBusy()) {
-//                    light1.setPosition(0.722);
-//                    shooter.setVelocity(0);
-//                    intake.setPower(0);
-//                    windmill.setPower(0);
-//                    follower.followPath(paths.rankingPoints);
-//                    setPathState(-1); // stop
-//                }
-//                break;
         }
     }
 

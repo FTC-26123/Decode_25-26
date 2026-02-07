@@ -151,7 +151,6 @@ public class redWall extends OpMode {
                             new BezierCurve(
                                     new Pose(85.281, 89.905),
                                     new Pose(76.183, 63.369),
-                                    new Pose(77.380, 59.981),
                                     new Pose(102.729, 59.516)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(41), Math.toRadians(0))
@@ -162,16 +161,16 @@ public class redWall extends OpMode {
                             new BezierLine(
                                     new Pose(102.729, 59.516),
 
-                                    new Pose(130.483, 59.452)
+                                    new Pose(133.029, 59.452)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             Shoot2nd = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(130.483, 59.452),
-
+                            new BezierCurve(
+                                    new Pose(133.029, 59.452),
+                                    new Pose(95.566, 67.945),
                                     new Pose(85.262, 89.939)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(41))
@@ -193,7 +192,7 @@ public class redWall extends OpMode {
                             new BezierLine(
                                     new Pose(103.818, 35.215),
 
-                                    new Pose(129.112, 35.396)
+                                    new Pose(133.922, 35.396)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -201,7 +200,7 @@ public class redWall extends OpMode {
 
             Shoot3rd = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(129.112, 35.396),
+                                    new Pose(133.922, 35.396),
                                     new Pose(90.445, 72.630),
                                     new Pose(124.035, 70.225)
                             )
@@ -236,19 +235,16 @@ public class redWall extends OpMode {
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1023-50);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1023-50);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     gate.setPosition(0.50);
                     setPathState(2);
@@ -290,19 +286,16 @@ public class redWall extends OpMode {
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1110);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1110);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
                     gate.setPosition(0.50);
 
                     setPathState(5);
@@ -343,19 +336,16 @@ public class redWall extends OpMode {
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1110);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
                     velCheck(1110);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
                     gate.setPosition(0.50);
 
                     setPathState(8);

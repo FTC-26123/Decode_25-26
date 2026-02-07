@@ -34,7 +34,6 @@ public class redFar extends OpMode {
     public Servo light1;
     public Servo gate;
     ElapsedTime timer = new ElapsedTime();
-    ElapsedTime velTim = new ElapsedTime();
 
     public void wait(int milliseconds) {
         timer.reset();
@@ -96,70 +95,92 @@ public class redFar extends OpMode {
     public static class Paths {
         public PathChain shoot1st;
         public PathChain intake2nd;
+        public PathChain go2ndSet;
         public PathChain shoot2nd;
         public PathChain intake3rd;
+        public PathChain go3rdSet;
         public PathChain shoot3rd;
-        public PathChain goToGate;
+        public PathChain wallIntake1;
 
         public Paths(Follower follower) {
             shoot1st = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(80.822, 8.340),
 
-                                    new Pose(87.282, 18.489)
+                                    new Pose(82.522, 16.449)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(63))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(64))
 
                     .build();
 
             intake2nd = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(87.282, 18.489),
-                                    new Pose(87.311, 37.761),
-                                    new Pose(82.271, 36.486),
-                                    new Pose(126.102, 35.702)
+                                    new Pose(82.522, 16.449),
+                                    new Pose(96.321, 32.661),
+                                    new Pose(81.081, 35.126),
+                                    new Pose(98.050, 35.532)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(0))
+
+                    .build();
+
+            go2ndSet = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(98.050, 35.532),
+
+                                    new Pose(129.984, 35.426)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             shoot2nd = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(126.102, 35.702),
+                                    new Pose(129.984, 35.426),
 
-                                    new Pose(87.325, 18.360)
+                                    new Pose(82.904, 16.490)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(63))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(64))
 
                     .build();
 
             intake3rd = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(87.325, 18.360),
-                                    new Pose(74.478, 64.960),
-                                    new Pose(124.495, 59.577)
+                                    new Pose(82.904, 16.490),
+                                    new Pose(75.498, 61.900),
+                                    new Pose(94.233, 59.407)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(0))
+
+                    .build();
+
+            go3rdSet = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(94.233, 59.407),
+
+                                    new Pose(133.742, 59.201)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             shoot3rd = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(124.495, 59.577),
+                                    new Pose(133.742, 59.201),
 
-                                    new Pose(87.226, 18.362)
+                                    new Pose(82.635, 16.662)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(63))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(64))
 
                     .build();
 
-            goToGate = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(87.226, 18.362),
-                                    new Pose(114.068, 73.149),
-                                    new Pose(122.509, 70.973)
+            wallIntake1 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(82.635, 16.662),
+
+                                    new Pose(102.087, 43.797)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(64), Math.toRadians(64))
 
                     .build();
         }
@@ -173,7 +194,7 @@ public class redFar extends OpMode {
             case 0:
                 if(!follower.isBusy()) {
 
-                    launcher.setVelocity(1470);
+                    launcher.setVelocity(1430);
                     intake.setPower(0.7);
                     follower.followPath(paths.shoot1st);
                     setPathState(1);
@@ -186,23 +207,22 @@ public class redFar extends OpMode {
                     intake.setPower(0.8);
                     gate.setPosition(0.27);
 
-                    velCheck(1420);
-                    index.setPower(0.7);
                     wait(1000);
-                    index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
+                    while (launcher.getVelocity() < 1400) wait(10);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
+
+                    velCheck(1400);
+                    index.setPower(0.7);
+                    wait(1000);
+                    index.setPower(0);
 
                     gate.setPosition(0.50);
                     setPathState(2);
@@ -214,8 +234,15 @@ public class redFar extends OpMode {
                 if(!follower.isBusy()) {
                     intake.setPower(1);
                     index.setPower(0.5);
-                    follower.followPath(paths.intake2nd, 0.65, true);
-                    launcher.setVelocity(1470);
+                    follower.followPath(paths.intake2nd, 1.00, false);
+                    launcher.setVelocity(1430);
+                    setPathState(100);
+                }
+                break;
+
+            case 100:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.go2ndSet, 0.325, false);
                     setPathState(3);
                 }
                 break;
@@ -233,23 +260,21 @@ public class redFar extends OpMode {
                 if(!follower.isBusy()) {
 
                     gate.setPosition(0.27);
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
-                    index.setPower(0.7);
-                    wait(1000);
-                    index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
+
+                    velCheck(1400);
+                    index.setPower(0.7);
+                    wait(1000);
+                    index.setPower(0);
                     gate.setPosition(0.50);
 
                     setPathState(5);
@@ -261,7 +286,14 @@ public class redFar extends OpMode {
                 if(!follower.isBusy()) {
                     intake.setPower(1);
                     index.setPower(0.5);
-                    follower.followPath(paths.intake3rd,0.65,true);
+                    follower.followPath(paths.intake3rd,1.00,false);
+                    setPathState(101);
+                }
+                break;
+
+            case 101:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.go3rdSet, 0.325, false);
                     setPathState(6);
                 }
                 break;
@@ -279,23 +311,20 @@ public class redFar extends OpMode {
                 if(!follower.isBusy()) {
 
                     gate.setPosition(0.27);
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
 
-                    velCheck(1420);
+                    velCheck(1400);
                     index.setPower(0.7);
                     wait(1000);
                     index.setPower(0);
-                    wait(300);
                     gate.setPosition(0.50);
 
                     setPathState(8);
@@ -307,10 +336,9 @@ public class redFar extends OpMode {
                     launcher.setVelocity(0);
                     index.setPower(0);
                     intake.setPower(0);
-                    follower.followPath(paths.goToGate, 0.65, true);
+                    follower.followPath(paths.wallIntake1, 1.00, true);
                     setPathState(-1);
                 }
-
                 break;
 
         }
